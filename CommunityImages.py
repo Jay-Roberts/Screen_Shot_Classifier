@@ -6,9 +6,9 @@ import pandas as pd
 import Top100Games
 
 Num_scrolls = 1     # Number of scrolls to call
-Num_games = 3       # Number of Games to use. Ordered by most popular
-download = True  # Decides if images are downloaded. If False only URLs are updated
-Num_down = 10
+Num_games = 3      # Number of Games to use. Ordered by most popular
+download = True # Decides if images are downloaded. If False only URLs are updated
+Num_down = 4
 
 
 # Get the top Num_games info 
@@ -68,61 +68,73 @@ for index,row in Game_df.iterrows():
         # See if the page exists:
         
 
-        try:
-            # Request the page
-            g_page = requests.get(g_url)
+        #try:
+        # Request the page
+        g_page = requests.get(g_url)
 
-            print(name+' community found.')
-            g_page = requests.get(g_url)
+        print(name+' community found.')
+        g_page = requests.get(g_url)
+        
+
+        g_tree = html.fromstring(g_page.content)
+
+        #Scrape for the sources of the images displayed
+
+        g_img_urls = g_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+
+        new_urls_df = pd.DataFrame({'IMG URL': g_img_urls})
+        
+
+        # Add the urls to the old ones
+
+        G_URLS_df =G_URLS_df.append(new_urls_df)
+
+        # Make a column to check if there are duplicates
+
+        G_URLS_df['DUPLICATE'] = G_URLS_df.duplicated()
+
+        # Pick out only those that were not duplicates
+
+        G_URLS_df = G_URLS_df[G_URLS_df['DUPLICATE'] == False]
+
+        # Drop the duplicate column
+        G_URLS_df = G_URLS_df.drop('DUPLICATE', axis = 1)
+        
+        # Write the csv
+        G_URLS_df.to_csv(file_path, index = False)
+        
+        # Download the images from the urls
+        if download:
+            limit = min([Num_down, len(g_img_urls)])
+
+            G_URLS_df_cut = G_URLS_df.iloc[:limit]
+            print('Downloading Images')
+
+            # Make a download folder inside the game folder
+            
+            new_folder = image_folder +'/downloads/'
             
 
-            g_tree = html.fromstring(g_page.content)
+            if not os.path.isdir(new_folder):
+                os.makedirs(new_folder)
 
-            #Scrape for the sources of the images displayed
+            for ii, G_URLS_row in G_URLS_df_cut.iterrows():
+                
+                
+                image_name = appID_str+'_'+ str(ii)
 
-            g_img_urls = g_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+                row_url = G_URLS_row['IMG URL']
+                img_data = requests.get(row_url).content
 
-            new_urls_df = pd.DataFrame({'IMG URL': g_img_urls})
-            
+                print(ii)
 
-            # Add the urls to the old ones
-
-            G_URLS_df =G_URLS_df.append(new_urls_df)
-
-            # Make a column to check if there are duplicates
-
-            G_URLS_df['DUPLICATE'] = G_URLS_df.duplicated()
-
-            # Pick out only those that were not duplicates
-
-            G_URLS_df = G_URLS_df[G_URLS_df['DUPLICATE'] == False]
-
-            # Drop the duplicate column
-            G_URLS_df = G_URLS_df.drop('DUPLICATE', axis = 1)
-            
-            # Write the csv
-            G_URLS_df.to_csv(file_path, index = False)
-            
-            # Download the images from the urls
-            if download:
-                limit = min([Num_down, len(g_img_urls)])
-
-                G_URLS_df_cut = G_URLS_df.iloc[:limit]
-                print('Downloading Images')
-                for ii, G_URLS_row in G_URLS_df_cut.iterrows():
-                    
-                    print(ii)
-                    image_name = name + str(ii)
-
-                    row_url = G_URLS_row['IMG URL']
-                    img_data = requests.get(row_url).content
-                    with open(file_path+ image_name , 'wb') as handler:
-                        handler.write(img_data)
+                with open(new_folder+ image_name , 'wb') as handler:
+                    handler.write(img_data)
 
 # IF the community does not exist
-        except:
+'''        except:
             print(name + ' community not found')
             G_URLS_df['IMG URL'] = 'COMMUNITY NOT FOUND'
             G_URLS_df.to_csv(file_path)
-
+'''
 
