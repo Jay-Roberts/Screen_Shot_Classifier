@@ -3,29 +3,12 @@ from lxml import html
 from lxml import etree
 import requests
 import pandas as pd
-
-
-# The URLS are of the form
-# http://steamcommunity.com/app/+ "APP ID" + /homecontent/?&p= + "SCROLL NUMBER" +&numperpage= + "NUMBER PER PAGE" + &
-# ENDS WITH &
-
+import Top100Games
 
 Num_scrolls = 1     # Number of scrolls to call
-Num_p_Page = 100     # Number of pictures per scroll page
-Num_games = 5       # Number of Games to use. Ordered by most popular
-download = True     # Decides if images are downloaded. If False only URLs are updated
-
-# have the constant pieces that could be edited later if they change.
-
-front_RL = 'http://steamcommunity.com/app/' # then put app id
-#after_ID_RL = '/homecontent/?userreviewsoffset='
-after_ID_RL ='/homecontent/?screenshotspage=' # then put current page number
-#after_Scroll_RL = '&numperpage='
-after_Num_pg = '&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
-
-
-
-
+Num_games = 3       # Number of Games to use. Ordered by most popular
+download = True  # Decides if images are downloaded. If False only URLs are updated
+Num_down = 10
 
 
 # Get the top Num_games info 
@@ -37,16 +20,21 @@ Game_df = pd.read_csv('/home/jay/Desktop/Codes/WebScrapping/Top100Games.csv', nr
 if not os.path.exists('rawimages'):
     os.makedirs('rawimages')
 
+if not os.path.exists('Top100Games.csv'):
+    print('Creating Top 100 List...')
+    Top100Games.main()
+
 for index,row in Game_df.iterrows():
     appID = int(row['STEAM ID'])
     name = row['GAME']
     name = name.replace(' ','_')
+    name = name.replace(':','-c-')
 
     print('Game: ', name)
 
     appID_str = str(appID)
     Num_scrolls_str = str(Num_scrolls)
-    Num_p_Page_str = str(Num_p_Page)
+    
 
     
 
@@ -59,38 +47,34 @@ for index,row in Game_df.iterrows():
 
     # Make a file to hold all the URLs So you can search later and not download repeats
 
-    url_path = 'rawimages/'+name+'/'+name+'_URLs'
-    if not os.path.isfile(url_path):
+    file_path = 'rawimages/'+name+'/'+name+'_URLs'
+    if not os.path.isfile(file_path):
         # If we haven't already made a URL list make one
-        G_URLS_df = pd.DataFrame(columns=['IMG URL'])
-        G_URLS_df.to_csv(url_path, index = False)
+        G_URLS_df = pd.DataFrame({'IMG URL': []})
+        G_URLS_df.to_csv(file_path, index = False)
     
     else:
-        G_URLS_df = pd.read_csv(url_path)
+        G_URLS_df = pd.read_csv(file_path)
    
     # Loop through the number of scrolls
 
     for scroll in range(Num_scrolls):
 
-        scroll_str = str(scroll)
         # Make the games url
-
-        g_url = front_RL + appID_str
-        g_url = g_url    + after_ID_RL     + scroll_str 
-        #g_url = g_url    + after_Scroll_RL 
-        #g_url = g_url    + Num_p_Page_str 
-        g_url = g_url    + after_Num_pg
-
-
-        # Request the page
+        g_url = 'http://steamcommunity.com/app/'+ appID_str +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
+        
 
         # NOT ALL PAGES HAVE A COMMUNITY
         # See if the page exists:
+        
+
         try:
-            requests.get(g_url)
+            # Request the page
+            g_page = requests.get(g_url)
+
             print(name+' community found.')
             g_page = requests.get(g_url)
-            html.fromstring(g_page.content)
+            
 
             g_tree = html.fromstring(g_page.content)
 
@@ -98,8 +82,8 @@ for index,row in Game_df.iterrows():
 
             g_img_urls = g_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
 
-            new_urls_df = pd.DataFrame(columns=['IMG URL'])
-            new_urls_df['IMG URL'] = g_img_urls
+            new_urls_df = pd.DataFrame({'IMG URL': g_img_urls})
+            
 
             # Add the urls to the old ones
 
@@ -117,26 +101,28 @@ for index,row in Game_df.iterrows():
             G_URLS_df = G_URLS_df.drop('DUPLICATE', axis = 1)
             
             # Write the csv
-            G_URLS_df.to_csv(url_path, index = False)
+            G_URLS_df.to_csv(file_path, index = False)
             
             # Download the images from the urls
             if download:
+                limit = min([Num_down, len(g_img_urls)])
+
+                G_URLS_df_cut = G_URLS_df.iloc[:limit]
                 print('Downloading Images')
-                for ii, G_URLS_row in G_URLS_df.iterrows():
+                for ii, G_URLS_row in G_URLS_df_cut.iterrows():
                     
                     print(ii)
                     image_name = name + str(ii)
 
                     row_url = G_URLS_row['IMG URL']
                     img_data = requests.get(row_url).content
-                    with open(url_path+ image_name , 'wb') as handler:
+                    with open(file_path+ image_name , 'wb') as handler:
                         handler.write(img_data)
 
 # IF the community does not exist
         except:
             print(name + ' community not found')
             G_URLS_df['IMG URL'] = 'COMMUNITY NOT FOUND'
-            G_URLS_df.to_csv(url_path)
+            G_URLS_df.to_csv(file_path)
 
 
-        
