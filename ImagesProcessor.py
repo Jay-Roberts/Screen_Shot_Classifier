@@ -1,3 +1,11 @@
+#----------------------------------------------------------------------------------------
+#
+#       PROCESS THE IMAGES PROCURED BY CommunityImages.py
+#       RETURN TENSOR OF PROCESSED IMAGES IN GAME FOLDER
+#
+#----------------------------------------------------------------------------------------
+
+
 import os
 import numpy as np
 from scipy import misc
@@ -6,12 +14,13 @@ import CommunityImages
 import matplotlib.pyplot as plt
 
 
+# If "rawimages" folder exists ImagProcessor.py crawls through the game folders inside "rawimages". Otherwise CommunityImages.py is called.
+# For each game folder it goes through the "downloads" folder and resizes all the images.
+# The resized images are collected in the rank 4 tensor g_proc_images which is saved as a numpy bit file in the game folder.
 
-#stuff2 = ndimage.imread('/home/jay/Desktop/Codes/WebScrapping/OpenCVPractice/Dota_2_URLsDota_24')
 
-#stuff4 = misc.imresize(stuff2, (124,512))
-#misc.imshow(stuff4)
 
+# Set the desired resolution
 resolution = (512,256)
 
 # Check if the rawimage file exists
