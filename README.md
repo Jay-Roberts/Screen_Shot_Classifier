@@ -13,7 +13,8 @@
 - Uses output of CommunityImages.py to resize all images.
 - Resized images are stored as a numpy bit file in'rawimages/game_name/'.
 
+#
 
 The whole process can be run by calling ImagesProcessor.py.
-#
+\
 More details in the comments.
