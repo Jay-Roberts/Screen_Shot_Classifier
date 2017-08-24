@@ -7,7 +7,7 @@
 - Uses the Top100 list to download images from the game's steam community's screenshot page.
 - Image urls are stored in the file 'rawimages/game_name/game_name_URLs.csv'
 - Images are stored in the folder 'rawimages/game_name/downloads'
-- Can choose to not download images and only update the csv to save downloading for a later time.
+- Can choose to not download images and only update the csv to postpone downloading for a later time.
 
 # ImagesProcessor.py:
 - Uses output of CommunityImages.py to resize all images.
