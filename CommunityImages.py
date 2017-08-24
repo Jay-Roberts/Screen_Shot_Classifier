@@ -1,3 +1,12 @@
+#---------------------------------------------------------------------------------------------------------------------
+#
+#       GENERATE LIST OF IMAGE URL FOR TOP100GAMES
+#       RETURNS DIRECTORY WITH FOLDERS FOR EACH GAME CONTAING A CSV OF IMAGE URLS AND A FOLDER OF DOWNLOADED IMAGES
+#
+#---------------------------------------------------------------------------------------------------------------------
+
+
+
 import os
 from lxml import html
 from lxml import etree
@@ -5,10 +14,17 @@ import requests
 import pandas as pd
 import Top100Games
 
+# If Top100Games.csv does not exist Top100Games.py is called to create it.
+# "rawimages"  and "rawimages/game_name" directories are created. 
+# In each game_name folder a csv containing the URLs of images from the games steam community is created/updated.
+# If download = True images from this URL list are downloaded and stored in "downloads" folder 
+
 def main():
-    Num_scrolls = 1     # Number of scrolls to call
+    # Set Parameters
+
+    Num_scrolls = 1    # Number of scrolls to call
     Num_games = 99     # Number of Games to use. Ordered by most popular
-    download = True # Decides if images are downloaded. If False only URLs are updated
+    download = True    # Decides if images are downloaded. If False only URLs are updated
     Num_down = 1
 
 
