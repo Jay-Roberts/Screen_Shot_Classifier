@@ -35,7 +35,7 @@ else:
 # Get a list of the game file names
 
 games_folders = os.listdir('rawimages/')
-print(games_folders)
+
 
 # Loop through the games and make processed folders
 
@@ -43,13 +43,6 @@ for g_name in games_folders:
     g_folder = 'rawimages/'+g_name
     g_image_folder = g_folder+'/downloads'
 
-    # Create the processed folder
-
-    g_proc_folder = 'rawimages/'+g_name+'/processed'
-
-    if not(os.path.isdir(g_proc_folder)):
-        os.makedirs(g_proc_folder)
-    
     # Some files don't have images 
     if os.path.isdir(g_image_folder):
 
