@@ -6,7 +6,7 @@ import pandas as pd
 
 # Makes a CSV of the top 100 games on steam with their steam ids
 # DataFrame is of the form {'GAME': Games,'STEAM ID': GamesID}
-# Currently adds an extra index column for no reason
+
 
 def main():
     top_games = requests.get('http://store.steampowered.com/stats/')
