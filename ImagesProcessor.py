@@ -17,7 +17,11 @@ import matplotlib.pyplot as plt
 
 # If "rawimages" folder exists ImagProcessor.py crawls through the game folders inside "rawimages". Otherwise CommunityImages.py is called.
 # For each game folder it goes through the "downloads" folder and resizes all the images.
-# The resized images are collected in the rank 4 tensor g_proc_images which is saved as a numpy bit file in the game folder.
+# Images are stored in the all_processed tensor, which has shape (Total number of images, (resolution,3)), alongside a 
+## labels tensor that stores the APPID and has shape (Total number of images).
+# The images and labels are created at the same time so that the image all_processed[i] has GameID labels[i].
+ 
+
 
 
 
@@ -39,16 +43,16 @@ games_folders = os.listdir('rawimages/')
 
 n_fold = len(games_folders)
 
-# The total raw data will be here
+# Make the data and labels tensor
 
 all_processed = [0]*n_fold
-
-# Make the labels data
 labels = [0]*n_fold
 
+
+# Get the game1D data
 g_df = pd.read_csv('Top100Games.csv')
 
-# Loop through the games and make processed folders
+# Loop through the games
 
 #Count total images
 total_images = 0
@@ -59,10 +63,8 @@ for ifol in range(n_fold):
     g_ix = g_df[g_df['GAME'] == g_name].index[0]
     g_ID = g_df['STEAM ID'].iloc[g_ix]
     labels[ifol]
-   
 
-    
-
+    # Find image folder
     g_folder = 'rawimages/'+g_name
     g_image_folder = g_folder+'/downloads'
 
@@ -76,7 +78,7 @@ for ifol in range(n_fold):
     num_imgs = len(g_images)
 
 
-    # Create a list of images
+    # Create the tensor to hold g_name's image arrays
     g_proc_images = np.zeros((len(g_images), resolution[0], resolution[1],3))
 
     
@@ -85,31 +87,34 @@ for ifol in range(n_fold):
 
         image = g_images[ig]
         img_path = g_image_folder+'/'+image
-#        print(img_path)
+        
         
         img_array = ndimage.imread(img_path)
 
         # Change the resolution
+
+        #
+        # Here is where we can add any other preprocessing we like
+        #
+
         img_array = misc.imresize(img_array, resolution)
 
-        # Add to the games images tensor
+        # Update g_proc_images
         g_proc_images[ig] = img_array
     
     # Make it an array
     g_proc_images = np.array(g_proc_images)
-    
-    #print(g_proc_images.shape)
 
-    # Add the array to the 
+    # Update all_processed 
     all_processed[ifol] = g_proc_images
     
-    # update labels
+    # Update labels
     labels[ifol] = [g_ID]*num_imgs    
 
 
 
 
-# Make processed data and labels an array
+# Make all_processed and labels into arrays
 all_processed = np.array(all_processed)
 labels = np.array(labels)
 
