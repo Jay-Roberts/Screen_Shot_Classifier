@@ -11,10 +11,11 @@
 
 # ImagesProcessor.py:
 - Uses output of CommunityImages.py to resize all images.
-- Resized images are stored as a numpy bit file in'rawimages/game_name/'.
+- Creates a tensor of image data and tensor of corresponding labels.
+- Saves both in 'processed' folder as images.npy and labels.npy.
 
 #
 
 The whole process can be run by calling ImagesProcessor.py.
-\
+
 More details in the comments.
