@@ -31,11 +31,11 @@ resolution = (28,28)
 # Check if the rawimage file exists
 if not(os.path.isdir('rawimages')):
     print('rawimages file not found')
-    print('Running CommunityImages')
+    print('Running CommunityImages', '\n')
     CommunityImages.main()
     
 else:
-    print('Found rawimages file')
+    print('Found rawimages file', '\n')
 
 # Get a list of the game file names
 
@@ -45,7 +45,7 @@ n_fold = len(games_folders)
 
 # Get the game1D data
 g_df = pd.read_csv('Top100Games.csv')
-print(g_df.head())
+#print(g_df.head())
 
 # Make the data and labels tensor
 
@@ -62,18 +62,19 @@ images_col = [0]*n_fold
 total_images = 0
 for ifol in range(n_fold):
     
-    g_name = games_folders[ifol]
+    g_fol_name = games_folders[ifol]
 
     # Get gameID
     g_ix = ifol
-    print(g_ix)
+    
     #g_ix = g_df[g_df['GAME'] == g_name].index[0]
 
     g_ID = g_df['STEAM ID'].iloc[ifol]
+    g_name = g_df['GAME'].iloc[ifol]
     
     
     # Find image folder
-    g_folder = 'rawimages/'+g_name
+    g_folder = 'rawimages/'+g_fol_name
     g_image_folder = g_folder+'/downloads'
 
     # Some files don't have images 
@@ -83,7 +84,7 @@ for ifol in range(n_fold):
     # Get the names of image files
     g_images = os.listdir(g_image_folder)
 
-    #print(g_images)
+    
 
     # Set number of images
     num_imgs = len(g_images)
@@ -91,7 +92,9 @@ for ifol in range(n_fold):
     # Create the tensor to hold g_name's image arrays
     g_proc_images = np.zeros((len(g_images), resolution[0], resolution[1],3))
     
-    print(num_imgs)
+    print('Processing: ', g_name)
+    print('Number of images: ', num_imgs, '\n')
+    
     for ig in range(num_imgs):
         # Get image and make a file path
         image = g_images[ig]
@@ -118,7 +121,7 @@ for ifol in range(n_fold):
 
         # Make it an array
     g_proc_images = np.array(g_proc_images)
-    print(g_proc_images.shape)
+    #print(g_proc_images.shape)
 
     # Update all_processed 
     all_processed[ifol] = g_proc_images
@@ -132,6 +135,7 @@ for ifol in range(n_fold):
 
 # Make the save directory
 if not os.path.isdir('processed/'):
+    print('Creating Processed Folder','\n')
     os.makedirs('processed/')
 
 # Make a data frame organized by game
@@ -143,11 +147,9 @@ if not os.path.isdir('processed/'):
 
 # Make all_processed and labels into arrays
 
-print(labels)
 all_processed = np.concatenate(all_processed, axis = 0)
 labels = np.concatenate(labels, axis = 0)
 
-print(all_processed.shape, labels.shape)
 
 
 # Unwind them
@@ -158,9 +160,11 @@ labels.shape = (total_images)
 
 from sklearn.utils import shuffle
 
+print('Shuffling Data')
 all_processed, labels = shuffle(all_processed,labels, random_state = 10)
 
 # Save the data
+print('Saving Tensors')
 np.save('processed/'+'images',all_processed)
 np.save('processed/'+'labels', labels)
 
