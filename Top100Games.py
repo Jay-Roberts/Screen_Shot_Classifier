@@ -9,6 +9,37 @@ import pandas as pd
 
 
 def main():
+
+    def fix_name(word):
+        # Remove Spaces
+        result = word.replace(' ','_')
+
+        # Remove Colons
+        result = result.replace(':','-c-')
+
+        # Remove trade mark symbols
+        result = result.replace(u"\u2122",'')
+
+        # Remove periods
+
+        result = result.replace('.','p_p')
+
+        # Remove apostrophes
+
+        result = result.replace("'",'')
+
+        # Remove Parentheses
+
+        result = result.replace('(','PP-P')
+        result = result.replace(')','P-PP')
+
+        # Remove ampersand
+
+        result = result.replace('&','AmPeR')
+        
+        return result
+
+
     top_games = requests.get('http://store.steampowered.com/stats/')
 
     # html.fromstring expects bytes as input so we use content
@@ -53,7 +84,8 @@ def main():
             return terms[spot+1]
         
 
-
+    
+    Games = list(map(fix_name,Games))
     Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID})
 
     Game_list['STEAM ID'] = list(map(get_appID,Game_list['STEAM ID']))

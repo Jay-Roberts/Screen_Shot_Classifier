@@ -23,9 +23,10 @@ def main():
     # Set Parameters
 
     Num_scrolls = 1    # Number of scrolls to call
-    Num_games = 99     # Number of Games to use. Ordered by most popular
-    download = True    # Decides if images are downloaded. If False only URLs are updated
-    Num_down = 1
+    Num_games = 5    # Number of Games to use. Ordered by most popular)
+    Num_down = 20     # Number of Games to Download
+    download = True   # Decides if images are downloaded. If False only URLs are updated
+    
 
 
     # Get the top Num_games info 
@@ -56,15 +57,17 @@ def main():
         
 
         # Make a folder for each game in the rawimages folder
+        # Folder name is appID to avoid nonsense names
 
-        image_folder = 'rawimages/'+name
+        fold_name = str(appID)
+        image_folder = 'rawimages/'+fold_name
         if not os.path.exists(image_folder):
             os.makedirs(image_folder)
         
 
         # Make a file to hold all the URLs So you can search later and not download repeats
 
-        file_path = 'rawimages/'+name+'/'+name+'_URLs'
+        file_path = 'rawimages/'+fold_name +'/'+fold_name+'_URLs'
         if not os.path.isfile(file_path):
             # If we haven't already made a URL list make one
             G_URLS_df = pd.DataFrame({'IMG URL': []})
@@ -76,10 +79,11 @@ def main():
         # Loop through the number of scrolls
 
         for scroll in range(Num_scrolls):
-
+            
             # Make the games url
             g_url = 'http://steamcommunity.com/app/'+ appID_str +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
             
+            #print(g_url)
 
             # NOT ALL PAGES HAVE A COMMUNITY
             # See if the page exists:
@@ -98,6 +102,8 @@ def main():
                 #Scrape for the sources of the images displayed
 
                 g_img_urls = g_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+
+                
 
                 new_urls_df = pd.DataFrame({'IMG URL': g_img_urls})
                 
@@ -134,25 +140,26 @@ def main():
 
                     if not os.path.isdir(new_folder):
                         os.makedirs(new_folder)
-
+                    
+                    img_label = len(os.listdir(new_folder))
                     for ii, G_URLS_row in G_URLS_df_cut.iterrows():
                         
                         
-                        image_name = appID_str+'_'+ str(ii)
+                        image_name = appID_str+'_'+ str(ii+img_label)
 
                         row_url = G_URLS_row['IMG URL']
                         img_data = requests.get(row_url).content
 
                         print(ii)
 
-                        with open(new_folder+ image_name , 'wb') as handler:
+                        with open(new_folder+ image_name +".jpg", 'wb') as handler:
                             handler.write(img_data)
 
     # IF the community does not exist
             except:
                 print(name + ' community not found')
                 G_URLS_df['IMG URL'] = 'COMMUNITY NOT FOUND'
-                G_URLS_df.to_csv(file_path)
+                G_URLS_df.to_csv(file_path+'.csv')
 
 if __name__ == '__main__':
     main()

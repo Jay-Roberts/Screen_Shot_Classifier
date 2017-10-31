@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 
 # Set the desired resolution
-resolution = (64,64)
+resolution = (28,28)
 
 # Check if the rawimage file exists
 if not(os.path.isdir('rawimages')):
@@ -40,30 +40,38 @@ else:
 # Get a list of the game file names
 
 games_folders = os.listdir('rawimages/')
-
 n_fold = len(games_folders)
+
+
+# Get the game1D data
+g_df = pd.read_csv('Top100Games.csv')
+print(g_df.head())
 
 # Make the data and labels tensor
 
 all_processed = [0]*n_fold
 labels = [0]*n_fold
 
+# Columns for a data-frame organized by game
 
-# Get the game1D data
-g_df = pd.read_csv('Top100Games.csv')
+appid_col  = [0]*n_fold
+images_col = [0]*n_fold
 
 # Loop through the games
-
-#Count total images
+# Count total images
 total_images = 0
 for ifol in range(n_fold):
+    
     g_name = games_folders[ifol]
 
     # Get gameID
-    g_ix = g_df[g_df['GAME'] == g_name].index[0]
-    g_ID = g_df['STEAM ID'].iloc[g_ix]
-    labels[ifol]
+    g_ix = ifol
+    print(g_ix)
+    #g_ix = g_df[g_df['GAME'] == g_name].index[0]
 
+    g_ID = g_df['STEAM ID'].iloc[ifol]
+    
+    
     # Find image folder
     g_folder = 'rawimages/'+g_name
     g_image_folder = g_folder+'/downloads'
@@ -75,56 +83,84 @@ for ifol in range(n_fold):
     # Get the names of image files
     g_images = os.listdir(g_image_folder)
 
-    num_imgs = len(g_images)
+    #print(g_images)
 
+    # Set number of images
+    num_imgs = len(g_images)
 
     # Create the tensor to hold g_name's image arrays
     g_proc_images = np.zeros((len(g_images), resolution[0], resolution[1],3))
-
     
+    print(num_imgs)
     for ig in range(num_imgs):
-        total_images += 1
-
+        # Get image and make a file path
         image = g_images[ig]
+    
+        
         img_path = g_image_folder+'/'+image
         
-        
+        # Read picture
         img_array = ndimage.imread(img_path)
-
-        # Change the resolution
 
         #
         # Here is where we can add any other preprocessing we like
         #
 
+        # Change the resolution
         img_array = misc.imresize(img_array, resolution)
 
         # Update g_proc_images
         g_proc_images[ig] = img_array
-    
-    # Make it an array
+
+        # Count
+        total_images += 1
+        
+
+        # Make it an array
     g_proc_images = np.array(g_proc_images)
+    print(g_proc_images.shape)
 
     # Update all_processed 
     all_processed[ifol] = g_proc_images
     
-    # Update labels
+    # Update labels, appid and images
     labels[ifol] = [g_ID]*num_imgs    
+    appid_col[ifol], images_col[ifol] = g_ID, g_proc_images
 
+
+
+
+# Make the save directory
+if not os.path.isdir('processed/'):
+    os.makedirs('processed/')
+
+# Make a data frame organized by game
+# Save the data frame
+#processed_images = pd.DataFrame({'IMAGES': images_col, 'APPID': appid_col})
+#processed_images.to_pickle('processed/processed_images')
 
 
 
 # Make all_processed and labels into arrays
-all_processed = np.array(all_processed)
-labels = np.array(labels)
+
+print(labels)
+all_processed = np.concatenate(all_processed, axis = 0)
+labels = np.concatenate(labels, axis = 0)
+
+print(all_processed.shape, labels.shape)
+
 
 # Unwind them
 all_processed.shape = (total_images, resolution[0],resolution[1],3)
-labels.shape = total_images
+labels.shape = (total_images)
 
-# Save them as numpy arrays
-if not os.path.isdir('processed/'):
-    os.makedirs('processed/')
+# Shuffle them together
+
+from sklearn.utils import shuffle
+
+all_processed, labels = shuffle(all_processed,labels, random_state = 10)
+
+# Save the data
 np.save('processed/'+'images',all_processed)
 np.save('processed/'+'labels', labels)
 
