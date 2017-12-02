@@ -1,21 +1,17 @@
-# Screen_Shot_Classifier
+# Screen Shot Classifier
 
-# Top100Games.py: 
-- Creates a list of top 100 games on Steam with their Steam AppIDs
+## Top100Games.py: 
+- Returns a DataFrame of top 100 games on Steam with their Steam AppIDs
+- If run with save = True saves a csv of this data
 
-# CommunityImages.py:
-- Uses the Top100 list to download images from the game's steam community's screenshot page.
-- Image urls are stored in the file 'rawimages/game_name/game_name_URLs.csv'
-- Images are stored in the folder 'rawimages/game_name/downloads'
-- Can choose to not download images and only update the csv to postpone downloading for a later time.
+## CommunityImages.py:
+- Uses the Top100 list to scrape image urls from the game's steam-community screenshot page.
+- Urls are stored in the file 'Gameurls/_gameID_ / _gameID_urls.csv'
+- {URL: the urls of images, DOWNLOADED: 0 = not downloaded 1 = downloade}
 
-# ImagesProcessor.py:
+## ImagesProcessor.py:
 - Uses output of CommunityImages.py to resize all images.
 - Creates a tensor of image data and tensor of corresponding labels.
 - Saves both in 'processed' folder as images.npy and labels.npy.
-
-#
-
-The whole process can be run by calling ImagesProcessor.py.
 
 More details in the comments.
