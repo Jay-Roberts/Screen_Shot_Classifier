@@ -4,7 +4,7 @@ import pandas as pd
 
 
 
-"""Makes a CSV of the current top 100 games on steam with their steam ids
+"""Returns a DataFrame of the current top 100 games on steam with their steam ids
 DataFrame is of the form {'GAME': Games,'STEAM ID': GamesID}. Dataframe is stored
 locally as Top100games.csv"""    
     
