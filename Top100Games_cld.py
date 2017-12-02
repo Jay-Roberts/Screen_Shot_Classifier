@@ -4,15 +4,15 @@ import pandas as pd
 
 
 
-"""Returns a DataFrame of the current top 100 games on steam with their steam ids
-DataFrame is of the form {'GAME': Games,'STEAM ID': GamesID}. Dataframe is stored
-locally as Top100games.csv"""    
+"""If save = False Returns a DataFrame of the current top 100 games on steam with their steam ids
+DataFrame is of the form {'GAME': Games,'STEAM ID': GamesID}. 
+Otherwise Dataframe is saved locally as Top100games_cld.csv"""    
     
 #
 # Go through steam top 100 games and make a list of them together with their steam AppID
 # Returns a Dataframe
 
-def main():
+def main(save = False):
     print('Downloading Top 100 List')
     top_games = requests.get('http://store.steampowered.com/stats/')
 
@@ -28,7 +28,10 @@ def main():
     Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID})
     Game_list['STEAM ID'] = list(map(get_appID,Game_list['STEAM ID']))
 
-    return Game_list
+    if save:
+        Game_list.to_csv('Top100Games_cld.csv')
+    else:
+        return Game_list
 
 
 #
