@@ -6,8 +6,6 @@
 #---------------------------------------------------------------------------------------------------------------------
 
 """
-- Should be run with os argumetns: Num_games Num_scrolls Num_down. 
-Otherwise provide these integers as a list.
 - If Top100Games.csv does not exist Top100Games.py is called to create it.
 - If they don't exist '/rawimages' is created and 'rawimages/game_name' directories are created 
 for each game. 
@@ -33,39 +31,28 @@ def main(Num_games = 5,Num_scrolls = 1,Num_down = 5):
     print(Num_games,Num_scrolls,Num_down)
     # Get the top Num_games info 
 
-    if not os.path.isfile('Top100Games.csv'):
-        Game_df = Top100Games_cld.main()
-    
-    # Make a folder to hold all the game images.
-    # Check if the folder is already there
-    if not os.path.exists('rawimages'):
-        os.makedirs('rawimages')
-
     if not os.path.exists('Top100Games_cld.csv'):
         print('Creating Top 100 List...')
-        Top100Games_cld.main().to_csv('Top100Games_cld.csv')
-
+        Game_df = Top100Games_cld.main()
+        Game_df.to_csv('Top100Games_cld.csv', index = False)
+    else:
+        Game_df = pd.read_csv('Top100Games_cld.csv')
+    
     # Make a dictionary to hold all the game_url dataframes
     Game_urls = {}
     for index,row in Game_df.iterrows():
         appID = int(row['STEAM ID'])
         name = row['GAME']
-
-        Game_urls[str(appID)] = []
-        # Fixing the name. Should change this to  ASCI package
-        name = name.replace(' ','_')
-        name = name.replace(':','-c-')
-
-        print('Game: ', name)
-
         appID_str = str(appID)
         Num_scrolls_str = str(Num_scrolls)
-        
-        # Initialize the game_url Dataframe
-        
+
+        # Make the list for the game urls
+        Game_urls[str(appID)] = []
+
+        print('Game: ', name)
         for scroll in range(Num_scrolls):
             
-            # Make the games url
+            # Make the game community url
             g_com_url = 'http://steamcommunity.com/app/'+ appID_str +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
             
             # NOT ALL PAGES HAVE A COMMUNITY
@@ -73,7 +60,6 @@ def main(Num_games = 5,Num_scrolls = 1,Num_down = 5):
             try:
                 # Request the page
                 g_page = requests.get(g_com_url)
-
                 print(name+' community found.')
 
                 # Get the page and make the tree
