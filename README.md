@@ -7,7 +7,7 @@
 ## CommunityImages.py:
 - Uses the Top100 list to scrape image urls from the game's steam-community screenshot page.
 - Urls are stored in the file 'Gameurls/_gameID_ / _gameID_urls.csv'
-- {URL: the urls of images, DOWNLOADED: 0 = not downloaded 1 = downloade}
+- {URL: the urls of images, DOWNLOADED: 0 = not downloaded 1 = downloaded}
 
 ## ImagesProcessor.py:
 - Uses output of CommunityImages.py to resize all images.
