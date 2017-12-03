@@ -19,7 +19,7 @@ import requests
 import os
 import Top100Games_cld
 import pandas as pd
-def main(Num_scrolls = 5, save = True):
+def main(Num_scrolls = 6, save = True):
 
     Num_scrolls_str = str(Num_scrolls)
     # Get the top Num_games info 
@@ -54,12 +54,14 @@ def main(Num_scrolls = 5, save = True):
         print('Game: ', name)
         # Scrape through with each scroll
         game_urls = []
-        for scroll in range(Num_scrolls):
+        for scroll in range(1,Num_scrolls):
+            pg = str(scroll)
             # Build the community url
-            game_com = 'https://steamcommunity.com/app/'+game
-            game_com += '/homecontent/?p='+str(scroll)
-            game_com += '&numperpage=100&browsefilter=trend&appid='+game
-            
+            game_com = 'https://steamcommunity.com/app/'+game+'/homecontent/?userreviewsoffset=0&'
+            game_com+= 'p='+pg+'2&workshopitemspage='+pg+'&readytouseitemspage='+pg+'&mtxitemspage='+pg+'&itemspage='+pg
+            game_com+= '&screenshotspage='+pg+'&artpage='+pg+'&allguidepage='+pg+'&webguidepage='+pg+'&integratedguidepage='+pg+'&discussionspage='+pg
+            game_com+= '&numperpage=1000&browsefilter=trend&browsefilter=trend&l=english&appHubSubSection='+pg+'&filterLanguage=default&searchText=&forceanon=1'
+
             # NOT ALL PAGES HAVE A COMMUNITY
             # See if the page exists:
             try:
@@ -71,14 +73,13 @@ def main(Num_scrolls = 5, save = True):
 
                 #Scrape for the sources of the images displayed
                 new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+                game_urls += new_urls
 
             # IF the community does not exist
             except:
                 print(name + ' community not found')
                 game_img_urls = ['Community Not Found']
-
-            game_urls += new_urls
-
+                
         # put the new urls together and get rid of repeats
         game_urls = list(set(game_urls))
         found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
