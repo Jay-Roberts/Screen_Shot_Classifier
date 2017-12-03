@@ -90,8 +90,12 @@ def main(Num_scrolls = 6, save = True):
 
         #Drop Duplicates
         game_url_df.drop_duplicates(subset = 'URL')
-        game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
-        print('Saving URLs')
+
+        if save:
+            game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
+            print('Saving URLs')
+        else:
+            return game_url_df
 
 if __name__ == '__main__':
     main()

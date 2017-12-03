@@ -16,8 +16,10 @@ import Top100Games_cld
 
 def main(resolution = (224,224,3),first = 0, last = 100, save = False):
     """
-    Inputs;{resolution: the resolution of the processed image, first: index of first image to be processed (inclusive)
-    last: index of last image to be processed (not inclusive), save: if true saves the images locally}"""
+    INPUTS:{resolution: the resolution of the processed image, first: index of first image to be processed (inclusive)
+    last: index of last image to be processed (not inclusive), save: if true saves the images locally}
+    RETURNS: List of processed images from index first to last. Images stored in numpy arrays of size resolution.
+    """
     # Check if there is an image directory
     if not os.path.isdir('GameImages'):
         os.makedirs('GameImages')
