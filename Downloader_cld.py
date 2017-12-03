@@ -67,7 +67,7 @@ def main(resolution = (224,224,3),first = 0, last = 100, save = False):
                 if not images[imgx] ==0:
                     # Save the image
                     img, tag = images[imgx]
-                    img_path = 'GameImages/'+ID+'/'+ID+str(tag)+'.jpg'
+                    img_path = 'GameImages/'+ID+'/'+ID+'_'+str(tag)+'.jpg'
                     io.imsave(img_path,img)
 
                     # Update the download column
