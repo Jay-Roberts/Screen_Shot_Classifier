@@ -65,7 +65,6 @@ def main(Num_scrolls = 5, save = True):
             try:
                 # Request the page
                 game_pg = requests.get(game_com)
-                print(name+' community page %d found.'%(scroll))
 
                 # Make the tree
                 game_tree = html.fromstring(game_pg.content)
@@ -92,6 +91,6 @@ def main(Num_scrolls = 5, save = True):
         game_url_df.drop_duplicates(subset = 'URL')
         game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
         print('Saving URLs')
-        
+
 if __name__ == '__main__':
     main()
