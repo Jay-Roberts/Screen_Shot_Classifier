@@ -56,20 +56,25 @@ def main(Num_scrolls = 5, save = True):
         game_urls = []
         for scroll in range(Num_scrolls):
             # Make the game community url
-            game_com = 'http://steamcommunity.com/app/'+ game +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
+            #game_com = 'http://steamcommunity.com/app/'+ game +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
             
+            game_com = 'https://steamcommunity.com/app/'+game
+            game_com += '/homecontent/?p='+str(scroll)
+            game_com += '&numperpage=100&browsefilter=trend&appid='+game
+            #https://steamcommunity.com/app/+game+/homecontent/?userreviewsoffset=0&p=3&workshopitemspage=3&readytouseitemspage=3&mtxitemspage=3&itemspage=3&screenshotspage=3&videospage=3&artpage=3&allguidepage=3&webguidepage=3&integratedguidepage=3&discussionspage=3&numperpage=10&browsefilter=trend&browsefilter=trend&appid=570&appHubSubSection=2&appHubSubSection=2&l=english&filterLanguage=default&searchText=&forceanon=1
             # NOT ALL PAGES HAVE A COMMUNITY
             # See if the page exists:
             try:
                 # Request the page
                 game_pg = requests.get(game_com)
-                print(name+' community found.')
+                print(name+' community page %d found.'%(scroll))
 
                 # Make the tree
                 game_tree = html.fromstring(game_pg.content)
 
                 #Scrape for the sources of the images displayed
                 new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+                
 
             # IF the community does not exist
             except:
@@ -77,9 +82,12 @@ def main(Num_scrolls = 5, save = True):
                 game_img_urls = ['Community Not Found']
 
             game_urls += new_urls
+
         
         # put the new urls together and get rid of repeats
+        
         game_urls = list(set(game_urls))
+        print('Found %d urls'%(len(game_urls)))
         found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
 
         # append the new data        
