@@ -44,7 +44,7 @@ def main(Num_scrolls = 5, save = True):
         if not os.path.isdir(game_url_path):
             os.makedirs(game_url_path)
 
-        # See if the csv has been made
+        # See if the csv has been made else make it
         if os.path.exists(game_url_path+'/'+game+'_urls.csv'):
             game_url_df = pd.read_csv(game_url_path+'/'+game+'_urls.csv')
         else:
@@ -55,13 +55,11 @@ def main(Num_scrolls = 5, save = True):
         # Scrape through with each scroll
         game_urls = []
         for scroll in range(Num_scrolls):
-            # Make the game community url
-            #game_com = 'http://steamcommunity.com/app/'+ game +'/homecontent/?screenshotspage='+str(scroll)+'&numperpage=100&browsefilter=mostrecent&browsefilter=mostrecent&l=english&appHubSubSection=2&filterLanguage=default&searchText=&forceanon=1'
-            
+            # Build the community url
             game_com = 'https://steamcommunity.com/app/'+game
             game_com += '/homecontent/?p='+str(scroll)
             game_com += '&numperpage=100&browsefilter=trend&appid='+game
-            #https://steamcommunity.com/app/+game+/homecontent/?userreviewsoffset=0&p=3&workshopitemspage=3&readytouseitemspage=3&mtxitemspage=3&itemspage=3&screenshotspage=3&videospage=3&artpage=3&allguidepage=3&webguidepage=3&integratedguidepage=3&discussionspage=3&numperpage=10&browsefilter=trend&browsefilter=trend&appid=570&appHubSubSection=2&appHubSubSection=2&l=english&filterLanguage=default&searchText=&forceanon=1
+            
             # NOT ALL PAGES HAVE A COMMUNITY
             # See if the page exists:
             try:
@@ -74,7 +72,6 @@ def main(Num_scrolls = 5, save = True):
 
                 #Scrape for the sources of the images displayed
                 new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
-                
 
             # IF the community does not exist
             except:
@@ -83,22 +80,18 @@ def main(Num_scrolls = 5, save = True):
 
             game_urls += new_urls
 
-        
         # put the new urls together and get rid of repeats
-        
         game_urls = list(set(game_urls))
-        print('Found %d urls'%(len(game_urls)))
         found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
+        print('Found %d new urls'%(len(game_urls)))
 
         # append the new data        
         game_url_df = game_url_df.append(found_urls_df)
 
         #Drop Duplicates
         game_url_df.drop_duplicates(subset = 'URL')
-
-        print('Saving URLs')
         game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
-
+        print('Saving URLs')
         
 if __name__ == '__main__':
     main()
