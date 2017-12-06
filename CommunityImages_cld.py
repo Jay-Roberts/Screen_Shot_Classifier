@@ -19,7 +19,7 @@ import requests
 import os
 import Top100Games_cld
 import pandas as pd
-def main(Num_scrolls = 6, save = True):
+def main(Num_scrolls = 18, save = True):
 
     Num_scrolls_str = str(Num_scrolls)
     # Get the top Num_games info 
@@ -93,6 +93,7 @@ def main(Num_scrolls = 6, save = True):
 
         if save:
             game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
+            print(len(game_url_df['URL']))
             print('Saving URLs')
         else:
             return game_url_df
