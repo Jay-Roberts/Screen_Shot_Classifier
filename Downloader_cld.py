@@ -13,8 +13,9 @@ from urllib import request
 from scipy import misc
 from skimage import transform, io
 import Top100Games_cld
+import CommunityImages_cld
 
-def main(resolution = (224,224,3),first = 0, last = 100, save = False):
+def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = False):
     """
     INPUTS:{resolution: the resolution of the processed image, first: index of first image to be processed (inclusive)
     last: index of last image to be processed (not inclusive), save: if true saves the images locally}
@@ -25,6 +26,9 @@ def main(resolution = (224,224,3),first = 0, last = 100, save = False):
         os.makedirs('GameImages')
 
     # Find the url directories
+    if not os.path.isdir('Gameurls'):
+        CommunityImages_cld.main()
+        
     game_dir = os.listdir('Gameurls')
 
     # Loop through each directory
@@ -37,11 +41,22 @@ def main(resolution = (224,224,3),first = 0, last = 100, save = False):
 
         # Get the csv as DF
         path = 'Gameurls/'+ID+'/'
+        if not os.path.isfile(path):
+            print('Delete Gamesurl and then run again')
+        
         url_df = pd.read_csv(path+ID+'_urls.csv')
         url_list = url_df['URL']
 
         # Hold image files to be saved later
+        if all:
+            first = 0
+            last = len(url_list)
+        else:
+            first = begin
+            last = end
+        
         images = [0]*(last -first)
+        print('Downloading: %d images'%(last-first))
         for ix in range(first,last):
             url = url_list[ix]
 
