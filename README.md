@@ -24,6 +24,7 @@ is stored in DataFrame structure: {URL: the urls of images, DOWNLOADED: 0 = not 
 Function to download urls from the directories created by CommunityImages_cld.py in batches.
 - INPUTS:
     {resolution: tuple, the resolution of the processed image. _Default_ (224,224,3)
+     all: bool, if True Downloads all urls set to false to batch. _Default_ False
      first: int, index of first image to be processed (inclusive). _Default_ 0
      last: int, index of last image to be processed (not inclusive). _Default_ 100
      save: bool, if true saves the images locally. _Default_ True}
