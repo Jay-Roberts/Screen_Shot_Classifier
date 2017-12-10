@@ -33,3 +33,6 @@ Function to download urls from the directories created by CommunityImages_cld.py
     A list of the processed images. The images are stored as numpy arrays of size _resolution_ .
 
 More details in the comments.
+
+## requirements.txt:
+Text file of the required python packages.
