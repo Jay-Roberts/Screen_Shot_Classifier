@@ -23,6 +23,9 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
     last: index of last image to be processed (not inclusive), save: if true saves the images locally}
     RETURNS: List of processed images from index first to last. Images stored in numpy arrays of size resolution.
     """
+    # Get the top100games list
+    t100_df = pd.read_csv('Top100Games_cld.csv')
+
     # Check if there is an image directory
     if not os.path.isdir('GameImages'):
         os.makedirs('GameImages')
@@ -47,8 +50,9 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
             print('Delete Gamesurl and then run again')
         
         url_df = pd.read_csv(path+ID+'_urls.csv')
-        url_list = url_df['URL']
-
+        # Only get urls that haven't been downloaded before
+        url_list = url_df.loc[url_df['DOWNLOADED'] == 0.0,'URL']
+        
         # Hold image files to be saved later
         if all:
             first = 0
@@ -83,7 +87,8 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
         if save:
             # Save the images this will change in real cloud version but for testing it saves locally
             print('Saving Images')
-            for imgx  in range(len(images)):
+            num_imgs = len(images)
+            for imgx  in range(num_imgs):
                 # Only grab the images that went through
                 if not images[imgx] ==0:
                     # Save the image
@@ -93,6 +98,12 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
 
                     # Update the download column
                     url_df.iloc[tag]['DOWNLOADED'] = 1
+            
+            # Update the Top100games     
+            print('Updating csvs')
+            t100_df.loc[t100_df['STEAM ID'] == int(ID), 'IMAGES'] += num_imgs
+            t100_df.to_csv('Top100Games_cld.csv')
+            url_df.to_csv(path+ID+'_urls.csv')
         else:
             return images
 
