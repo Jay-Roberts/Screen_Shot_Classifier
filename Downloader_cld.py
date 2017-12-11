@@ -15,7 +15,7 @@ from skimage import transform, io
 import Top100Games_cld
 import CommunityImages_cld
 
-def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = False):
+def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True):
     """
     INPUTS:{resolution: the resolution of the processed image, first: index of first image to be processed (inclusive)
     last: index of last image to be processed (not inclusive), save: if true saves the images locally}

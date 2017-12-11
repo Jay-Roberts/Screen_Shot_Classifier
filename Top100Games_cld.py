@@ -12,7 +12,7 @@ Otherwise Dataframe is saved locally as Top100games_cld.csv"""
 # Go through steam top 100 games and make a list of them together with their steam AppID
 # Returns a Dataframe
 
-def main(save = False):
+def main(save = True):
     print('Downloading Top 100 List')
     top_games = requests.get('http://store.steampowered.com/stats/')
 
