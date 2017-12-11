@@ -56,12 +56,14 @@ def main(Num_scrolls = 18, save = True):
         game_urls = []
         for scroll in range(1,Num_scrolls):
             pg = str(scroll)
+            
             # Build the community url
-            game_com = 'https://steamcommunity.com/app/'+game+'/homecontent/?userreviewsoffset=0&'
-            game_com+= 'p='+pg+'2&workshopitemspage='+pg+'&readytouseitemspage='+pg+'&mtxitemspage='+pg+'&itemspage='+pg
-            game_com+= '&screenshotspage='+pg+'&artpage='+pg+'&allguidepage='+pg+'&webguidepage='+pg+'&integratedguidepage='+pg+'&discussionspage='+pg
-            game_com+= '&numperpage=1000&browsefilter=trend&browsefilter=trend&l=english&appHubSubSection='+pg+'&filterLanguage=default&searchText=&forceanon=1'
 
+            game_com = 'https://steamcommunity.com/app/'+game+'/homecontent/?userreviewsoffset=0&p='+pg
+            game_com+= '&workshopitemspage='+pg+'&readytouseitemspage='+pg+'&mtxitemspage='+pg+'&itemspage='+pg+'&screenshotspage='+pg
+            game_com+= '&videospage='+pg+'&artpage='+pg+'&allguidepage='+pg+'&webguidepage='+pg+'&integratedguidepage='+pg
+            game_com+= '&discussionspage='+pg+'&numperpage=50&browsefilter=mostrecent&browsefilter=mostrecent&'
+            game_com+= 'appid='+game+'&appHubSubSection=2&appHubSubSection=2&l=english&filterLanguage=default&searchText=&forceanon=1'
             # NOT ALL PAGES HAVE A COMMUNITY
             # See if the page exists:
             try:
