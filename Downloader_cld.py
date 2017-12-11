@@ -96,7 +96,8 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
         else:
             return images
 
-
+if __name__ == '__main__':
+    main()
 
 
     
