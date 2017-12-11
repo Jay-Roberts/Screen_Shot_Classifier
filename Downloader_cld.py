@@ -9,7 +9,9 @@
 import os
 import numpy as np
 import pandas as pd
-from urllib import request
+# request is for python3 not 2
+#from urllib import request
+from urllib2 import urlopen
 from scipy import misc
 from skimage import transform, io
 import Top100Games_cld
@@ -62,7 +64,9 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
 
             #Net issues could stop this
             try:
-                img = request.urlopen(url)
+                # request is for python3
+                #img = request.urlopen(url)
+                img = urlopen(url)
                 img = misc.imread(img, mode='RGB')
 
                 # Process the image

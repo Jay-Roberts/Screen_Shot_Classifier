@@ -26,7 +26,7 @@ def main(Num_scrolls = 18, save = True):
 
     if not os.path.exists('Top100Games_cld.csv'):
         print('Creating Top 100 List...')
-        Game_df = Top100Games_cld.main()
+        Game_df = Top100Games_cld.main(save = False)
         Game_df.to_csv('Top100Games_cld.csv', index = False)
     else:
         Game_df = pd.read_csv('Top100Games_cld.csv')
