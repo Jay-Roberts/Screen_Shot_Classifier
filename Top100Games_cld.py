@@ -25,11 +25,11 @@ def main(save = True):
 
     # fix the names
     Games = list(map(fix_name,Games))
-    Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID})
+    Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID, 'IMAGES': [0]*len(Games)})
     Game_list['STEAM ID'] = list(map(get_appID,Game_list['STEAM ID']))
 
     if save:
-        Game_list.to_csv('Top100Games_cld.csv')
+        Game_list.to_csv('Top100Games_cld.csv', index = False)
     else:
         return Game_list
 
