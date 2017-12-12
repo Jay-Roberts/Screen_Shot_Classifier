@@ -68,12 +68,14 @@ def main(Num_scrolls = 18, save = True):
             # See if the page exists:
             try:
                 # Request the page
+                print('Requesting page')
                 game_pg = requests.get(game_com)
 
                 # Make the tree
                 game_tree = html.fromstring(game_pg.content)
 
                 #Scrape for the sources of the images displayed
+                print('Scrapping images')
                 new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
                 game_urls += new_urls
 
@@ -84,8 +86,9 @@ def main(Num_scrolls = 18, save = True):
                 
         # put the new urls together and get rid of repeats
         game_urls = list(set(game_urls))
-        found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
         print('Found %d new urls'%(len(game_urls)))
+        found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
+        
 
         # append the new data        
         game_url_df = game_url_df.append(found_urls_df)
@@ -94,9 +97,10 @@ def main(Num_scrolls = 18, save = True):
         game_url_df.drop_duplicates(subset = 'URL')
 
         if save:
-            game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
-            print(len(game_url_df['URL']))
             print('Saving URLs')
+            game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
+            #print(len(game_url_df['URL']))
+            
         else:
             return game_url_df
 
