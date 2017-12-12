@@ -1,3 +1,4 @@
+#!
 #---------------------------------------------------------------------------
 #
 #       DOWNLOADS THE IMAGES FROM THE URLS FROM COMMUNITY
@@ -70,11 +71,10 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
             try:
                 # request is for python3
                 #img = request.urlopen(url)
+                print('Requesting img %d/%d'%(ix,num_imgs))
                 img = urlopen(url)
                 img = misc.imread(img, mode='RGB')
 
-                if ix % 50 == 0:
-                    print('Processing image %d/%d'%(ix,num_imgs))
                 # Process the image
                 img = transform.resize(img,resolution)
 
@@ -94,6 +94,7 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
 
                 # Only grab the images that went through
                 if not images[imgx] ==0:
+
                     # Save the image
                     img, tag = images[imgx]
                     img_path = 'GameImages/'+ID+'/'+ID+'_'+str(tag)+'.jpg'
