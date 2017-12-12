@@ -91,6 +91,7 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
             print('Saving Images')
             num_imgs = len(images)
             for imgx  in range(num_imgs):
+
                 # Only grab the images that went through
                 if not images[imgx] ==0:
                     # Save the image
@@ -100,6 +101,9 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
 
                     # Update the download column
                     url_df.iloc[tag]['DOWNLOADED'] = 1
+
+                    if ix % 50 == 0:
+                        print('Saving image %d/%d'%(tag,num_imgs))
             
             # Update the Top100games     
             print('Updating csvs')
