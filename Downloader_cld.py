@@ -73,6 +73,8 @@ def main(resolution = (224,224,3), all = True, begin = 0, end = 100, save = True
                 img = urlopen(url)
                 img = misc.imread(img, mode='RGB')
 
+                if ix % 50 == 0:
+                    print('Processing image %d/%d'%(ix,num_imgs))
                 # Process the image
                 img = transform.resize(img,resolution)
 
