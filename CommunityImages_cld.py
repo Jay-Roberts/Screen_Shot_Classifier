@@ -68,14 +68,13 @@ def main(Num_scrolls = 18, save = True):
             # See if the page exists:
             try:
                 # Request the page
-                print('Requesting page')
+                print('%s: Requesting page %d'%(game, scroll))
                 game_pg = requests.get(game_com)
 
                 # Make the tree
                 game_tree = html.fromstring(game_pg.content)
 
                 #Scrape for the sources of the images displayed
-                print('Scrapping images')
                 new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
                 game_urls += new_urls
 
