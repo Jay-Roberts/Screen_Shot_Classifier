@@ -110,7 +110,6 @@ if __name__ == '__main__':
         labels = [gameID]*num_imgs
         
         # Run the TFRecod function on the data
-        make_TFRec([addrs,labels],path)
         p = multiprocessing.Process(target=make_TFRec, args=([addrs,labels],path))
         jobs.append(p)
         p.start()
