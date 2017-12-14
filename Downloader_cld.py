@@ -76,7 +76,7 @@ def url_chunks(ID):
     url_list = zip(url_list,labels,tag)
 
     
-    size = 10
+    size = 100
 
     chunks = len(url_list)/size
     orphans = len(url_list)%size
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         print('Starting '+game)
         url_blocks = url_chunks(game)
         # Find how many resources are available
-        num_slaves = mp.cpu_count()
+        num_slaves = mp.cpu_count()-1
         pool = mp.Pool(processes = num_slaves)
 
         pool.map(image_collector,url_blocks)  
