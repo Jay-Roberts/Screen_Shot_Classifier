@@ -22,14 +22,18 @@ def main(save = True):
 
     Games = top_tree.xpath('//a[@class="gameLink"]/text()')
     GamesID = top_tree.xpath('//a[@class="gameLink"]/@href')
+    
 
     # fix the names
     Games = list(map(fix_name,Games))
     Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID, 'IMAGES': [0]*len(Games)})
     Game_list['STEAM ID'] = list(map(get_appID,Game_list['STEAM ID']))
 
+    #print(Game_list.head())
+
+    
     if save:
-        Game_list.to_csv('Top100Games_cld.csv', index = False)
+        Game_list.to_csv('Top100Games_cld.csv', index = False, encoding = 'utf-8')
     else:
         return Game_list
 
@@ -40,22 +44,9 @@ def main(save = True):
 # Fix the names
 # Change this to a ASCI package
 def fix_name(word):
-    # Remove Spaces
-    result = word.replace(' ','_')
-    # Remove Colons
-    result = result.replace(':','-c-')
-    # Remove trade mark symbols
-    result = result.replace(u"\u2122",'')
-    # Remove periods
-    result = result.replace('.','p_p')
-    # Remove apostrophes
-    result = result.replace("'",'')
-    # Remove Parentheses
-    result = result.replace('(','PP-P')
-    result = result.replace(')','P-PP')
-    # Remove ampersand
-    result = result.replace('&','AmPeR')
-    return result
+
+    word.encode('utf-8', 'ignore')
+    return word
 
 #These get the steamID from the trees
 def get_url_terms(url):
