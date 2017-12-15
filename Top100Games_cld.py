@@ -2,13 +2,10 @@ from lxml import html
 import requests
 import pandas as pd
 
-
-
 """If save = False Returns a DataFrame of the current top 100 games on steam with their steam ids
 DataFrame is of the form {'GAME': Games,'STEAM ID': GamesID}. 
 Otherwise Dataframe is saved locally as Top100games_cld.csv"""    
-    
-#
+
 # Go through steam top 100 games and make a list of them together with their steam AppID
 # Returns a Dataframe
 
@@ -22,18 +19,25 @@ def main(save = True):
 
     Games = top_tree.xpath('//a[@class="gameLink"]/text()')
     GamesID = top_tree.xpath('//a[@class="gameLink"]/@href')
-    
 
+    # Get rid of games without community pages
+    # GamesID.remove('243750') # SDK Source SDK Base 2013 Multiplayer
+    # GamesID.remove('431960') # 
+    
     # fix the names
     Games = list(map(fix_name,Games))
+    GamesID = list(map(get_appID,GamesID))
     Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID, 'IMAGES': [0]*len(Games)})
-    Game_list['STEAM ID'] = list(map(get_appID,Game_list['STEAM ID']))
-
-    #print(Game_list.head())
-
+    
+    # Problem "games"
+    # 243750 # SDK Source SDK Base 2013 Multiplayer
+    # 431960 # Wall paper manager
+     
+    problem_ix = [GamesID.index('243750'),GamesID.index('431960')]
+    Game_list  = Game_list.drop(problem_ix)
     
     if save:
-        Game_list.to_csv('Top100Games_cld.csv', index = False, encoding = 'utf-8')
+        Game_list.to_csv('Top100Games_cld.csv', encoding = 'utf-8')
     else:
         return Game_list
 
@@ -42,7 +46,6 @@ def main(save = True):
 # Utility functions
 #
 # Fix the names
-# Change this to a ASCI package
 def fix_name(word):
 
     word.encode('utf-8', 'ignore')
@@ -74,6 +77,7 @@ def get_appID(url):
         
     if len(terms) > spot+1:
         return terms[spot+1]
+
 
 if __name__ == '__main__':
     main()
