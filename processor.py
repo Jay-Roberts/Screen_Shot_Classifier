@@ -1,5 +1,5 @@
 import os
-import multiprocessing
+import multiprocessing as mp
 import glob
 import sys
 import tensorflow as tf
@@ -16,6 +16,7 @@ def load_image(addr):
     # cv2 loads images as BGR, convert it to RGB
     img = cv2.imread(addr)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img,(224,224))
     img = img.astype(np.float32)
     return img
 
@@ -25,16 +26,36 @@ def _int64_feature(value):
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value = [value]))
 
+
+# Take gameID and get input to feed the TFRecod maker
+def feed_makeTFR(gameID):
+    # Make the game path
+    path = source_dir+'/%s'%gameID
+    game_label = labels_dict[gameID]
+
+    # Get the game's img addresses and its label
+    addrs = glob.glob(path+'/*.jpg')
+    num_imgs = len(addrs)
+    labels = [game_label]*num_imgs
+    
+    data = [addrs,labels]
+
+    return [data,path]
+
 # Write train data into a TFRecord
-def make_TFRec(data, path, split = (.6,.2,.2) ):
+def make_TFRec(gameID):
     """
     data = [X,Y] X address of image files, Y labels for the images
     path = the save path
     """
+    data,path = feed_makeTFR(gameID)
+    # Can change the split here
+    split = (.6,.2,.2) 
+
     train_size, test_size, val_size = split
     addrs, labels = data
     num_imgs = len(addrs)
-
+    
     names = ['train','test','val']
     
     # Shuffle data for good measure
@@ -42,10 +63,11 @@ def make_TFRec(data, path, split = (.6,.2,.2) ):
     shuffle(c)
     addrs,labels = zip(*c)
     
-
+    if not os.path.isdir('TFRecords/'+gameID):
+        os.makedirs('TFRecords/'+gameID)
     for name in names:
         #open the TFRecords file
-        filename = path+'/'+name+'.tfrecords' #address to save TFRecords file
+        filename = 'TFRecords/%s/%s.tfrecords'%(gameID,name) #address to save TFRecords file
         writer = tf.python_io.TFRecordWriter(filename)
 
         # Pick out the parts for train, test, and val
@@ -85,35 +107,27 @@ def make_TFRec(data, path, split = (.6,.2,.2) ):
         writer.close()
         sys.stdout.flush()
 
+
 if __name__ == '__main__':
     # Create a list of file addresses and their labels
     # Where to pull from
     source_dir = 'GameImages'
+
+    # Where to put them
+    if not os.path.isdir('TFRecords'):
+        os.makedirs('TFRecords')
     
     # Get the game list
     game_IDs = os.listdir(source_dir)
 
     # Make keys
-    labels_key = {x: game_IDs.index(x) for x in game_IDs}
+    labels_dict = {x: game_IDs.index(x) for x in game_IDs}
 
-    # Get all addresses and labels
-    jobs = []
-    for game in labels_key.keys():
-        
-        # Make the game path
-        path = source_dir+'/%s'%game
-        gameID = labels_key[game]
+    #make_TFRec('281990')
+    # Find how many resources are available
+    num_slaves = mp.cpu_count()
+    pool = mp.Pool(processes = num_slaves)
+    pool.map(make_TFRec,game_IDs)
 
-        # Get the game's img addresses and its label
-        addrs = glob.glob(path+'/*.jpg')
-        num_imgs = len(addrs)
-        labels = [gameID]*num_imgs
-        
-        # Run the TFRecod function on the data
-        p = multiprocessing.Process(target=make_TFRec, args=([addrs,labels],path))
-        jobs.append(p)
-        p.start()
-
-    
     
         
