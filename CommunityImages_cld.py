@@ -85,7 +85,7 @@ def get_urls(appID,Num_scrolls = 18):
     game_url_df.drop_duplicates(subset = 'URL')
 
     print('Saving URLs')
-    game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
+    game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv')
     
 if __name__ == '__main__':
     # Get the top games list
