@@ -43,7 +43,7 @@ def feed_makeTFR(gameID):
     return [data,path]
 
 # Write train data into a TFRecord
-def make_TFRec(gameID):
+def make_TFRec(gameID,source_dir = 'GameImages'):
     """
     data = [X,Y] X address of image files, Y labels for the images
     path = the save path
@@ -107,7 +107,6 @@ def make_TFRec(gameID):
         writer.close()
         sys.stdout.flush()
 
-
 if __name__ == '__main__':
     # Create a list of file addresses and their labels
     # Where to pull from
@@ -123,7 +122,6 @@ if __name__ == '__main__':
     # Make keys
     labels_dict = {x: game_IDs.index(x) for x in game_IDs}
 
-    #make_TFRec('281990')
     # Find how many resources are available
     num_slaves = mp.cpu_count()
     pool = mp.Pool(processes = num_slaves)
