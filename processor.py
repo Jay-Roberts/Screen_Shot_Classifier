@@ -28,7 +28,7 @@ def _bytes_feature(value):
 
 
 # Take gameID and get input to feed the TFRecod maker
-def feed_makeTFR(gameID):
+def feed_makeTFR(gameID, source_dir):
     # Make the game path
     path = source_dir+'/%s'%gameID
     game_label = labels_dict[gameID]
@@ -43,12 +43,9 @@ def feed_makeTFR(gameID):
     return [data,path]
 
 # Write train data into a TFRecord
-def make_TFRec(gameID,source_dir = 'GameImages'):
-    """
-    data = [X,Y] X address of image files, Y labels for the images
-    path = the save path
-    """
-    data,path = feed_makeTFR(gameID)
+def make_TFRec(gameID):
+
+    data,path = feed_makeTFR(gameID,source_dir)
     # Can change the split here
     split = (.6,.2,.2) 
 
