@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 from random import shuffle
 import cv2
+import pandas as pd
   
 
 # Loads images
@@ -82,7 +83,7 @@ def make_TFRec(gameID):
         for i in ixs:
             # Progress check. Low for testing
             if not i % 150:
-                print('%s-%s data: %d/%d'%(path,name,i,num_data))
+                print('%s-%s data: %d/%d'%(path,name,ixs.index(i),num_data))
                 sys.stdout.flush
         
             # Load the image
@@ -118,6 +119,15 @@ if __name__ == '__main__':
 
     # Make keys
     labels_dict = {x: game_IDs.index(x) for x in game_IDs}
+
+
+    # Write the dictionary to a csv
+
+    labels_col = map(lambda x: game_IDs.index(x), game_IDs)
+    labels_df = pd.DataFrame({'GAMEID':game_IDs, 'LABEL': labels_col})
+
+    print('Saving labels')
+    labels_df.to_csv('TFRecords/labels_key.csv', index = False)
 
     # Find how many resources are available
     num_slaves = mp.cpu_count()
