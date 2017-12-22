@@ -92,8 +92,8 @@ def make_TFRec(gameID):
 
             # Create feature
             feature = {
-                name+'/label':_int64_feature(label),
-                name+'/image': _bytes_feature(tf.compat.as_bytes(img.tostring()))
+                '/label':_int64_feature(label),
+                '/image': _bytes_feature(tf.compat.as_bytes(img.tostring()))
                 }
             
             # Create an example protocol buffer
