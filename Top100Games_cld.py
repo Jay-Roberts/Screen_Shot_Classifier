@@ -9,7 +9,7 @@ Otherwise Dataframe is saved locally as Top100games_cld.csv"""
 # Go through steam top 100 games and make a list of them together with their steam AppID
 # Returns a Dataframe
 
-def main(save = True):
+def main():
     print('Downloading Top 100 List')
     top_games = requests.get('http://store.steampowered.com/stats/')
 
@@ -19,10 +19,6 @@ def main(save = True):
 
     Games = top_tree.xpath('//a[@class="gameLink"]/text()')
     GamesID = top_tree.xpath('//a[@class="gameLink"]/@href')
-
-    # Get rid of games without community pages
-    # GamesID.remove('243750') # SDK Source SDK Base 2013 Multiplayer
-    # GamesID.remove('431960') # 
     
     # fix the names
     Games = list(map(fix_name,Games))
@@ -36,10 +32,9 @@ def main(save = True):
     problem_ix = [GamesID.index('243750'),GamesID.index('431960')]
     Game_list  = Game_list.drop(problem_ix)
     
-    if save:
-        Game_list.to_csv('Top100Games_cld.csv', encoding = 'utf-8')
-    else:
-        return Game_list
+    # Save the dataframe
+    Game_list.to_csv('Top100Games.csv', encoding = 'utf-8')
+    
 
 
 #
