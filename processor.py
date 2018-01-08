@@ -9,22 +9,6 @@ from random import shuffle
 import cv2
 import pandas as pd
   
-
-
-
-#
-#
-#
-#
-#
-#           !!!!!NOT SAVING WITH BLOCK NUMBER!!!!!
-#
-#
-#
-#
-
-
-
 # Loads images
 def load_image(addr,res):
     """
@@ -50,7 +34,6 @@ def _bytes_feature(value):
 
 #
 # TO DO:
-# Chunk the TFRecord writing stage.
 # Add in the google bucket compatability
 #
 def make_TFRec(gameID,source_dir,save_dir,hyp_args):
@@ -85,7 +68,7 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
             os.makedirs(name_path)
         #open the TFRecords file
         filename = name_path+'/'+name+'.tfrecords' #address to save TFRecords file
-        writer = tf.python_io.TFRecordWriter(filename)
+        #writer = tf.python_io.TFRecordWriter(filename)
 
         # Pick out the parts for train, test, and val
         if name == 'train':
@@ -115,21 +98,20 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
             ixs_blocks.append(ixs[-orphans:])
         
         # Find how many records are already in the directory
-        num_old_recs = len(os.listdir(save_path))
-
-
+        num_old_recs = len(os.listdir(save_path+'/'+name))
 
         for block in ixs_blocks:
-            block_name = num_old_recs + ixs_blocks.index(block)+1
+            block_name = num_old_recs + ixs_blocks.index(block)
             block_name = str(block_name)
             block_size = len(block)
 
             local_filename = name_path+'/%s_%s.tfrecords'%(name,block_name)
+            writer = tf.python_io.TFRecordWriter(local_filename)
             print('%s: Processing block %s'%(gameID,block_name))
             #Process data
             for i in ixs:
                 # Progress check. Low for testing
-                if not i % 150:
+                if  i % 150 == 0:
                     print('%s-%s data: %d/%d'%(name_path,name,ixs.index(i),num_data))
                     sys.stdout.flush
             
