@@ -1,4 +1,4 @@
-#!
+#
 #---------------------------------------------------------------------------
 #
 #       DOWNLOADS THE IMAGES FROM THE URLS FROM COMMUNITY
@@ -38,10 +38,10 @@ def get_images(url,ID,tag,knocks=4):
         try:
             # request is for python3
             #img = request.urlopen(url)
+            img = urlopen(url)
             if tag % 50 ==0 and knock==0:
                 print(ID+': requesting image '+str(tag))
             
-            img = urlopen(url)
             img = misc.imread(img, mode='RGB')
 
             knock = knocks + 10
@@ -201,8 +201,9 @@ if __name__ == '__main__':
 
         # Zip it up
         url_data = zip(url_list,IDs,tags,downs,[save_dir]*len(url_list))
+        url_data = list(url_data)
 
-        chunks = len(url_data)/size
+        chunks = int(len(url_data)/size)
         orphans = len(url_data)%size
 
         url_blocks = [0]*chunks
@@ -215,6 +216,9 @@ if __name__ == '__main__':
         # Find how many resources are available
         pool = mp.Pool(processes = num_cores)
         url_chunks = pool.map(block_image_collector,url_blocks)  
+
+        pool.close()
+        pool.join()
 
         new_url_list = []
         for x in url_chunks:
