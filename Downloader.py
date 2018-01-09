@@ -19,14 +19,14 @@ import CommunityImages
 
 
 # Take a url and return an image
-def get_images(url,ID,tag,knocks=4):
+def get_images(url,ID,tag,knocks):
     """
     Gets images from a url
     Inputs:
         url: str, the url of an image to download.
         ID: int, the Steam ID of the game. 
         tag: int, a unique identifier for saving.
-        knocks: int, the number of requests to make for an image. Default is 4.
+        knocks: int, the number of requests to make for an image. 
     Returns:
         If image download fails: [0,1] (1 deontes faild image and is used to update url csv)
         If image sucessfully downloaded: [img,0]
@@ -38,7 +38,7 @@ def get_images(url,ID,tag,knocks=4):
         try:
             # request is for python3
             #img = request.urlopen(url)
-            img = urlopen(url)
+            img = urlopen(url,timeout=1)
             if tag % 50 ==0 and knock==0:
                 print(ID+': requesting image '+str(tag))
             
@@ -46,12 +46,14 @@ def get_images(url,ID,tag,knocks=4):
 
             knock = knocks + 10
         except:
-            print('%s: Image not found after %d knocks'%(ID,knock+1))
+	    if knock > 2:
+            	print('%s: Image %s not found after %d knocks'%(ID,tag,knock+1))
             knock+=1
         
     if knock > knocks+2:
         return [img,0]
     else:
+	print('%s: Image %s failed to download'%(ID,tag))
         return [0,1]
 
 
@@ -72,7 +74,7 @@ def img_saver(img,ID,tag,sv_dir):
     io.imsave(img_path,img)
 
 # Take (url,ID,ix,d) and download the image to disk
-def image_collector(url,ID,tag,d,sv_dir):
+def image_collector(url,ID,tag,d,sv_dir,knocks):
     """Collects images from a url and saves them to sv_dir/ID/ID_tag.jpg. But first checks their download status
     Inputs:
         img: an image in a format which skimage can save. 
@@ -89,7 +91,7 @@ def image_collector(url,ID,tag,d,sv_dir):
     
     if d == 0.0:
         # These have no download attempts
-        img, stat = get_images(url,ID,tag)
+        img, stat = get_images(url,ID,tag,knocks)
         if stat == 0:
             # These were downloaded sucessfully
             img_saver(img,ID,tag,sv_dir)
@@ -102,9 +104,9 @@ def image_collector(url,ID,tag,d,sv_dir):
         return 1.0
 
 # Unpacked version
-def image_collector_unpacked(url_ID_tag_d_sv_dir):
-    url,ID,tag,d,sv_dir = url_ID_tag_d_sv_dir
-    return image_collector(url,ID,tag,d,sv_dir)
+def image_collector_unpacked(url_ID_tag_d_sv_dir_knocks):
+    url,ID,tag,d,sv_dir,knocks = url_ID_tag_d_sv_dir_knocks
+    return image_collector(url,ID,tag,d,sv_dir,knocks)
 
 def block_image_collector(urls_IDs_tags_ds_sv_dir):
     result = map(image_collector_unpacked,
@@ -200,7 +202,7 @@ if __name__ == '__main__':
         tags = list(url_df.index)
 
         # Zip it up
-        url_data = zip(url_list,IDs,tags,downs,[save_dir]*len(url_list))
+        url_data = zip(url_list,IDs,tags,downs,[save_dir]*len(url_list),[knocks]*len(url_list))
         url_data = list(url_data)
 
         chunks = int(len(url_data)/size)
