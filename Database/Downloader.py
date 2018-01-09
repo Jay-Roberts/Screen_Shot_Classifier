@@ -16,6 +16,12 @@ from scipy import misc
 from skimage import transform, io
 import Top100Games
 import CommunityImages
+import socket
+
+
+# Define a timeout variable for Requests
+timeout = 0.5 # This is a 1 second timeout
+socket.setdefaulttimeout(timeout)
 
 
 # Take a url and return an image
