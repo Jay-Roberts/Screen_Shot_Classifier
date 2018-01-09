@@ -5,6 +5,10 @@ numpy
 scipy
 scikit-image
 opencv-python
+<<<<<<< HEAD:Database/requirements.txt
 tensorflow
 google.cloud
 urllib2
+=======
+tensorflow
+>>>>>>> Fixed memory leak in Downloader:requirements.txt

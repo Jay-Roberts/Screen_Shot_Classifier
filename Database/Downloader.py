@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import multiprocessing as mp
 # request is for python3 not 2
-#from urllib import request
-from urllib2 import urlopen
+from urllib import request
+#from urllib2 import urlopen
 from scipy import misc
 from skimage import transform, io
 import Top100Games
@@ -37,11 +37,19 @@ def get_images(url,ID,tag,knocks):
     while knock <= knocks:
         try:
             # request is for python3
+<<<<<<< HEAD:Database/Downloader.py
             #img = request.urlopen(url)
             img = urlopen(url,timeout=1)
             if tag % 50 ==0 and knock==0:
                 print(ID+': requesting image '+str(tag))
             
+=======
+            img = request.urlopen(url)
+            if tag % 50 ==0 and knock==0:
+                print(ID+': requesting image '+str(tag))
+            
+            #img = urlopen(url)
+>>>>>>> Fixed memory leak in Downloader:Downloader.py
             img = misc.imread(img, mode='RGB')
 
             knock = knocks + 10
@@ -205,6 +213,10 @@ if __name__ == '__main__':
         url_data = zip(url_list,IDs,tags,downs,[save_dir]*len(url_list),[knocks]*len(url_list))
         url_data = list(url_data)
 
+<<<<<<< HEAD:Database/Downloader.py
+=======
+        url_data = list(url_data)
+>>>>>>> Fixed memory leak in Downloader:Downloader.py
         chunks = int(len(url_data)/size)
         orphans = len(url_data)%size
 
@@ -216,8 +228,9 @@ if __name__ == '__main__':
             url_blocks.append(url_data[-orphans:])
         
         # Find how many resources are available
-        pool = mp.Pool(processes = num_cores)
-        url_chunks = pool.map(block_image_collector,url_blocks)  
+        with mp.Pool(processes = num_cores) as pool:
+        #pool = mp.Pool(processes = num_cores)
+            url_chunks = pool.map(block_image_collector,url_blocks)  
 
         pool.close()
         pool.join()
