@@ -1,38 +1,23 @@
 # Screen Shot Classifier
 These codes are modifications of the master to better be used in a cloud computing setting. 
-## Top100Games_cld.py: 
-Returns a DataFrame of top 100 games on Steam with their Steam AppIDs.
+## Top100Games.py:
+Creates 'Top100Games.csv', a csv of the current top 100 games on Steam. The csv has columns 'GAME', 'STEAM ID', 'IMAGES'. 
 
-- INPUTS:
-    {save: bool, decides whether to save the csv of games or not. _Default_ True}
-- RETURNS:
-    If save is False returns the DataFrame {'GAME': _games_, 'STEAM ID': _gamesID_}
-    If save is True returns None but saves the above Dataframe locally as Top100Games_cld.csv
+The games SDK Source SDK Base 2013 Multiplayer and Wall paper manager have been removed since the first does not have a community page and the second is not a game.
 
 
-## CommunityImages_cld.py:
-Uses the Top100 list to scrape image urls from the game's steam-community screenshot page. Data
-is stored in DataFrame structure: {URL: the urls of images, DOWNLOADED: 0 = not downloaded 1 = downloaded}
-- INPUTS:
-    {Num_ scrolls: Integer for number of pages to scrape. _Default_ 6
-     save: bool that decides to save the url DataFrames as a csv or not. _Default_ True}
--RETURNS:
-    If save = Ture Urls are stored in the file 'Gameurls/_gameID_ / _gameID_urls.csv'. Otherwise the url DataFrame is returned.
+## CommunityImages.py:
+For each game in 'Top100Games.csv' it collects the urls of game images from the game's community page. The csv has columns 'URL' and 'DOWNLOADED'. Parallelized by _gameID_.
 
+## Downloader.py:
+Downloads images and saves locally from urls in _ID_ _.csv. The csv must have columns 'URL' and 'DOWNLOADED'. 
+Assumes the csvs are in _sourcedir_/_ID_/_ID__urls.csv. Parallelized by _ID_.
 
-## Downloader_cld.py:
-Function to download urls from the directories created by CommunityImages_cld.py in batches.
-- INPUTS:
-    {resolution: tuple, the resolution of the processed image. _Default_ (224,224,3)
-     all: bool, if True Downloads all urls set to false to batch. _Default_ False
-     first: int, index of first image to be processed (inclusive). _Default_ 0
-     last: int, index of last image to be processed (not inclusive). _Default_ 100
-     save: bool, if true saves the images locally. _Default_ True}
-     _Note_: index is the index of the url in the _gameID__urls.csv file or DataFrame
-- RETURNS:
-    A list of the processed images. The images are stored as numpy arrays of size _resolution_ .
+## Processor.py:
+Processes image files to be used with tensorflow. Resizes images and splits them into (train,test,validate) files. Can save locally or to a Google-Cloud-Bucket. Images are processed and saved/uploaded in chunks. Parallelized by chunk per _ID_.
 
-More details in the comments.
+Assumes images are in _sourcedir_/_ID_/
+
 
 ## requirements.txt:
-Text file of the required python packages.
+Required python packages.

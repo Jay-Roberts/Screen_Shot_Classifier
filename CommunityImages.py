@@ -18,6 +18,7 @@ import argparse
 # A function that downloads urls from a game's community page
 def get_urls(appID,Num_scrolls,UrlDir):
     """
+    Creates a csv file with the url's of images on the appID's community page. 
     Inputs:
         appID: int, steam appID of game.
         Num_scrolls: int, Number of times to scroll through the community page.
@@ -123,12 +124,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    
-    # Find how many resources are available
-    num_slaves = mp.cpu_count()
-    if args.num_cores > num_slaves:
-        print('Not enough cores')
-    
+        
     else:
         # Get the top games list
         if not os.path.exists('Top100Games.csv'):

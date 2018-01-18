@@ -6,3 +6,5 @@ scipy
 scikit-image
 opencv-python
 tensorflow
+google.cloud
+urllib2

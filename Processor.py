@@ -14,14 +14,19 @@ import datetime
 # Loads images
 def load_image(addr,res):
     """
-    Loads the image as a float32 numpy array.addr: the filepath of an image file
-    returns a np.float32 array representation of the image. Here is where you can add image 
-    processing."""
+    Loads an image from a file as a float32 numpy array. Here is where you can add image 
+    processing.
+    Inputs:
+        addr: The file path to the image file. (str)
+        res: Desired resolution. (list)
+    Returns:
+        Resized image as numpy array shape (res,3) with dtype np.float32
+    """
     res = tuple(res)
     # cv2 loads images as BGR, convert it to RGB
     img = cv2.imread(addr)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    #img = cv2.resize(img,(224,224))
+    
     img = cv2.resize(img,res)
     img = img.astype(np.float32)
     return img
@@ -39,6 +44,22 @@ def _bytes_feature(value):
 # Add in the google bucket compatability
 #
 def make_TFRec(gameID,source_dir,save_dir,hyp_args):
+    """
+    Makes a TFRecord from image files. Splits images into train,test, and val files.
+    Saves to:
+            save_dir/gameID/name/name_tag.tfrecor
+    where name is train,test, or val and tag is an int identifier.
+    Inputs:
+        gameID: The gameID for labeling purposes. (str)
+        source_dir: The path to the image files. (str)
+        save_dir: The path to save to. (str)
+        hyp_args: (split,res,chunk_size). (3-tuple, list, int)
+            split: The (train,test,val) split for the data. Must add to 1. (3-tuple floats)
+            res: Desired resolution M x N . (list)
+            chunk_size: Size to chunk images for upload. (int)
+    Returns:
+        None.
+    """
     # Unpack hyper arguments
     split,res,chunk_size = hyp_args
     
@@ -68,8 +89,11 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
         
         if not os.path.isdir(name_path):
             os.makedirs(name_path)
+        
+        tag = len(os.listdir(name_path))
+        tag = str(tag)
         #open the TFRecords file
-        filename = name_path+'/'+name+'.tfrecords' #address to save TFRecords file
+        filename = name_path+'/'+name+'_'+tag+'.tfrecords' #address to save TFRecords file
         #writer = tf.python_io.TFRecordWriter(filename)
 
         # Pick out the parts for train, test, and val
@@ -135,40 +159,28 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
 
             writer.close()
             sys.stdout.flush()
-        """    
-            # Name the blob path in the bucket
-            blob_path = 'TFRecords/%s/%s'%(gameID,name)
-        
-            blob_filename = blob_path+'/%s_%s_%s.tfrecords'%(gameID,name,block_name)
-            local_filename = name_path+'/%s_%s_tmp.tfrecords'%(name,block_name)
 
-            # Make a blobs to upload
-            blob = bucket.blob(blob_filename)
 
-            # Upload the TFRecord dir
-            # connection issues can get in the way so try a few times
-            
-            success = False
-            knock = 0
-            while (not success and knock < knocks):
-                try:
-                    blob.upload_from_filename(local_filename)
-                    success = True
-                    print('%s: FINISHED Uploading %s-data in %d tries'%(gameID,name,tries+1))
-                except:
-                    knok+=1
-                
-            # Remove the local file
-            if not success:
-                print('%s: Failed to upload %s'%(gameID,local_filename))
-            
-            os.remove(local_filename)"""
-
+# Unpack it
 def make_TFRec_unpack(gameID_source_dir_save_dir_split_res):
     gameID,source_dir,save_dir,hyp_args = gameID_source_dir_save_dir_split_res
     make_TFRec(gameID,source_dir,save_dir,hyp_args)
 
 def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
+    """
+    Modification of make_TFRec to save processed images to Google Cloud Bucket. 
+    Inputs:
+        gameID: The gameID for labeling purposes. (str)
+        source_dir: The path to the image files. (str)
+        save_dir: The path to save to. (str)
+        hyp_args: (split,res,chunk_size). (3-tuple, list, int)
+            split: The (train,test,val) split for the data. Must add to 1. (3-tuple floats)
+            res: Desired resolution M x N . (list)
+            chunk_size: Size to chunk images for upload. (int)
+        knocks: Number of attempts to upload blob chunks to bucket. (int)
+    Returns:
+        None.
+    """
     # Unpack hyper arguments
     split,res,chunk_size = hyp_args
     
@@ -200,7 +212,6 @@ def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
             os.makedirs(name_path)
         #open the TFRecords file
         filename = name_path+'/'+name+'.tfrecords' #address to save TFRecords file
-        #writer = tf.python_io.TFRecordWriter(filename)
 
         # Pick out the parts for train, test, and val
         if name == 'train':
@@ -294,6 +305,7 @@ def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
             
             os.remove(local_filename)
 
+# Unpack it
 def make_TFRec_cld_unpack(gameID_source_dir_save_dir_hyp_args_knocks):
     gameID,source_dir,save_dir,hyp_args,knocks = gameID_source_dir_save_dir_hyp_args_knocks
     make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks)
