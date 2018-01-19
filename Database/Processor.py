@@ -43,7 +43,7 @@ def _bytes_feature(value):
 # TO DO:
 # Add in the google bucket compatability
 #
-def make_TFRec(gameID,source_dir,save_dir,hyp_args):
+def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
     """
     Makes a TFRecord from image files. Splits images into train,test, and val files.
     Saves to:
@@ -60,6 +60,8 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
     Returns:
         None.
     """
+    print(labels_dict)
+
     # Unpack hyper arguments
     split,res,chunk_size = hyp_args
     
@@ -78,7 +80,7 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
     train_size, val_size, test_size = split
     
     # Shuffle data for good measure
-    c = zip(addrs,labels)
+    c = list(zip(addrs,labels))
     shuffle(c)
     addrs,labels = zip(*c)
 
@@ -112,7 +114,7 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
         num_ixs= len(ixs)
         
         # Chunk it up
-        chunks = num_ixs/chunk_size
+        chunks = num_ixs//chunk_size
         orphans = num_ixs%chunk_size
 
         ixs_blocks = [0]*chunks
@@ -162,9 +164,10 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
 
 
 # Unpack it
-def make_TFRec_unpack(gameID_source_dir_save_dir_split_res):
-    gameID,source_dir,save_dir,hyp_args = gameID_source_dir_save_dir_split_res
-    make_TFRec(gameID,source_dir,save_dir,hyp_args)
+def make_TFRec_unpack(gameID_source_dir_save_dir_split_res_labels_dict):
+    gameID,source_dir,save_dir,hyp_args,labels_dict = gameID_source_dir_save_dir_split_res_labels_dict
+    #print(labels_dict)
+    make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict)
 
 def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
     """
@@ -390,10 +393,11 @@ if __name__ == '__main__':
     game_IDs = os.listdir(source_dir)
 
     # Make keys
+    #global labels_dict
     labels_dict = {x: game_IDs.index(x) for x in game_IDs}
 
     # Write the dictionary to a csv
-    labels_col = map(lambda x: game_IDs.index(x), game_IDs)
+    labels_col = list(map(lambda x: game_IDs.index(x), game_IDs))
     labels_df = pd.DataFrame({'GAMEID':game_IDs, 'LABEL': labels_col})
 
     print('Saving labels')
@@ -417,7 +421,7 @@ if __name__ == '__main__':
 
 
         # Package it for the pool
-        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args)
+        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,[labels_dict])
 
         pool = mp.Pool(processes = num_slaves)
         pool.map(make_TFRec_unpack,packed_data)

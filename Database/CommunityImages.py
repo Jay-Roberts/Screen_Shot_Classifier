@@ -125,24 +125,24 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
         
-    else:
-        # Get the top games list
-        if not os.path.exists('Top100Games.csv'):
-            print('Creating Top 100 List...')
-            Top100Games.main()
+#else:
+    # Get the top games list
+    if not os.path.exists('Top100Games.csv'):
+        print('Creating Top 100 List...')
+        Top100Games.main()
 
-        Game_df = pd.read_csv('Top100Games.csv')
+    Game_df = pd.read_csv('Top100Games.csv')
 
-        # Make the Gameurl dir
-        if not os.path.isdir(args.save_dir):
-            os.makedirs(args.save_dir)
+    # Make the Gameurl dir
+    if not os.path.isdir(args.save_dir):
+        os.makedirs(args.save_dir)
 
-        # Get the appIDs
-        appIDs = list(Game_df['STEAM ID'])[:args.num_games]
+    # Get the appIDs
+    appIDs = list(Game_df['STEAM ID'])[:args.num_games]
 
-        # Package with other arguments
-        for i in range(args.num_games):
-            appIDs[i] = [appIDs[i],args.num_scrolls,args.save_dir]
+    # Package with other arguments
+    for i in range(args.num_games):
+        appIDs[i] = [appIDs[i],args.num_scrolls,args.save_dir]
 
-        pool = mp.Pool(processes = args.num_cores)
-        pool.map(get_urls_unpack,appIDs)
+    pool = mp.Pool(processes = args.num_cores)
+    pool.map(get_urls_unpack,appIDs)

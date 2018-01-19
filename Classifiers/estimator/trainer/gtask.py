@@ -57,7 +57,26 @@ def run_experiment(hparams):
         
     builder.save()
     
+    """
+    # Exporting not working
+    exporter = tf.estimator.FinalExporter('export_test',
+                                            gmodel.SERVING_FUNCTIONS[hparams.export_format])
 
+    #feats = {'image':tf.placeholder(tf.float32,shape = (28,28,3)),
+    #    'label': tf.placeholder(tf.int64)}
+    
+    # Specify eval specs as well as the exporter needed
+    
+    eval_spec = tf.estimator.EvalSpec(eval_input,
+                                    steps=hparams.eval_steps,
+                                    exporters=exporter,
+                                    name='g-eval'
+                                    )
+    
+    tf.estimator.train_and_evaluate(estimator,
+                                    train_spec,
+                                    eval_spec)
+    """
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # Input Arguments
@@ -81,7 +100,7 @@ if __name__ == '__main__':
         '--train-batch-size',
         help='Batch size for training steps',
         type=int,
-        default=1
+        default=40
     )
     parser.add_argument(
         '--eval-batch-size',
@@ -122,6 +141,12 @@ if __name__ == '__main__':
         help='Number of steps to run evalution for at each checkpoint',
         default=100,
         type=int
+    )
+    parser.add_argument(
+        '--export-format',
+        help='The input format of the exported SavedModel binary',
+        choices=['JSON', 'CSV', 'EXAMPLE','TMP'],
+        default='JSON'
     )
    
 

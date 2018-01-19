@@ -60,14 +60,14 @@ def get_images(url,ID,tag,knocks):
 
             knock = knocks + 10
         except:
-	    if knock > 2:
-            	print('%s: Image %s not found after %d knocks'%(ID,tag,knock+1))
-            knock+=1
+            if knock > 2:
+                print('%s: Image %s not found after %d knocks'%(ID,tag,knock+1))
+                knock+=1
         
     if knock > knocks+2:
         return [img,0]
     else:
-	print('%s: Image %s failed to download'%(ID,tag))
+        print('%s: Image %s failed to download'%(ID,tag))
         return [0,1]
 
 
