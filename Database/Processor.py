@@ -60,7 +60,7 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
     Returns:
         None.
     """
-    print(labels_dict)
+    #print(labels_dict)
 
     # Unpack hyper arguments
     split,res,chunk_size = hyp_args
@@ -166,7 +166,7 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
 # Unpack it
 def make_TFRec_unpack(gameID_source_dir_save_dir_split_res_labels_dict):
     gameID,source_dir,save_dir,hyp_args,labels_dict = gameID_source_dir_save_dir_split_res_labels_dict
-    #print(labels_dict)
+    print(gameID_source_dir_save_dir_split_res_labels_dict)
     make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict)
 
 def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
@@ -391,6 +391,7 @@ if __name__ == '__main__':
 
     # Find all the games
     game_IDs = os.listdir(source_dir)
+    #print(game_IDs)
 
     # Make keys
     #global labels_dict
@@ -421,7 +422,7 @@ if __name__ == '__main__':
 
 
         # Package it for the pool
-        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,[labels_dict])
+        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,[labels_dict]*len(game_IDs))
 
         pool = mp.Pool(processes = num_slaves)
         pool.map(make_TFRec_unpack,packed_data)
