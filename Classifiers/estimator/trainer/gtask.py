@@ -1,6 +1,6 @@
 import argparse
 import os
-import gmodel
+import gmodelbad
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn.utils import (
     saved_model_export_utils)
@@ -11,26 +11,28 @@ def run_experiment(hparams):
     """Run the training and evaluate using the high level API"""
     
     # Get the train_input function
-    train_input = lambda: gmodel.my_input_fn('train',file_dir = hparams.file_dir,
+    train_input = lambda: gmodelbad.my_input_fn('train',file_dir = hparams.file_dir,
         num_epochs=hparams.num_epochs,
         batch_size=hparams.train_batch_size)
 
     # Don't shuffle evaluation data
-    eval_input = lambda: gmodel.my_input_fn('val', file_dir= hparams.file_dir,
+    eval_input = lambda: gmodelbad.my_input_fn('val', file_dir= hparams.file_dir,
         batch_size=hparams.eval_batch_size,
         shuffle=False)
 
-    # Set the traning specs
-    train_spec = tf.estimator.TrainSpec(train_input,
-                                        max_steps=hparams.train_steps)
     
-    # Set up the configuration to run gmodel
+    # Set up the configuration to run gmodelbad
     run_config = tf.estimator.RunConfig()
     run_config = run_config.replace(model_dir=hparams.job_dir)
     print('model dir {}'.format(run_config.model_dir))
     
+    export_dir = hparams.job_dir+'/Saved_Estimators'
+    export_dir = 'Saved_Estimators/'
+
     # Construct the estimator
-    estimator = gmodel.construct_model(config = run_config)
+    #estimator = gmodelbad.construct_model(config = run_config)
+    estimator = tf.estimator.Estimator(gmodelbad.my_model_fn,config = run_config)
+    print(type(estimator))
 
     #Train the model
     estimator.train(train_input,
@@ -41,21 +43,16 @@ def run_experiment(hparams):
                         steps = hparams.eval_steps,
                         name='gm_eval')
     
+    # Export it
+    # Need to fix this for predictions but is suffiencent for proper export
 
-    # Save the model
-    export_dir = hparams.job_dir+'/Saved_Estimators'
-    #export_dir = 'Saved_Estimators/'
-    print(export_dir)
-
-    builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
-
-    with tf.Session(graph=tf.Graph()) as sess:
-
-        builder.add_meta_graph_and_variables(sess,
-               ['testit_tag'],
-                )
-        
-    builder.save()
+    # Dictionary of featurs. SHould remove label in model then here.
+    feature_spec = {'image':tf.placeholder(dtype=tf.float32,shape = [28,28,3]),
+                    'label':tf.placeholder(dtype = tf.int32,shape = [1])}
+    
+    estimator.export_savedmodel(export_dir,
+                                tf.estimator.export.build_raw_serving_input_receiver_fn(feature_spec)
+                                )
     
 
 if __name__ == '__main__':
