@@ -10,10 +10,12 @@ import multiprocessing as mp
 
 
 # Define the model function
-def my_model_fn(features, labels, mode, config):
+def my_model_fn(features,mode, config):
+    print('MODE:',mode)
+    #print('Feature type: ', features.shape)
     # Input layer
-    input_layer = tf.reshape(features, [-1,28,28,3],name='input_layer')
-  
+    input_layer = tf.reshape(features['image'], [-1,28,28,3],name='input_layer')
+    labels = features['label']
     # Convolutional Layer #1
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
@@ -71,15 +73,19 @@ def my_model_fn(features, labels, mode, config):
         # Add evaluation metrics (for EVAL mode)
     if mode == tf.estimator.ModeKeys.EVAL:
         eval_metric_ops = {
-            "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+            "accuracy": tf.metrics.accuracy(labels=labels, 
+                                            predictions=predictions["classes"])
             }
         return tf.estimator.EstimatorSpec( mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+    
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        predict_out = tf.estimator.export.PredictOutput(predictions)
+        exp_ops = {'pres':predict_out}
+        return tf.estimator.EstimatorSpec(mode=mode,predictions=predictions,export_outputs=exp_ops)
 
 # Build the function in an EstimatorSpec
-def construct_model(config = None):
-    return tf.estimator.Estimator(my_model_fn,config=config)
-
-
+#def construct_model(config = None):
+#    return tf.estimator.Estimator(my_model_fn,config=config)
 
 # Helper function to get game tfrecords
 def get_name(tag):
@@ -118,10 +124,10 @@ def my_parser(serialized_example):
     image = tf.cast(image, tf.float32) / 255 - 0.5
 
     # Real small now
-    image = tf.reshape(image, [28, 28,3])
+    image =  tf.reshape(image, [28, 28,3])
 
     label = tf.cast(features['label'], tf.int32)
-    return image, label
+    return {'image':image,'label': label}
 
 
 # The input function
@@ -146,6 +152,7 @@ def my_input_fn(name,file_dir = ['TFRecords'],
 
     filenames = list(map(get_name,games))
     filenames = join_list(filenames)
+    
 
     # Import image data
     dataset = tf.data.TFRecordDataset(filenames)
@@ -167,8 +174,8 @@ def my_input_fn(name,file_dir = ['TFRecords'],
     dataset = dataset.repeat()
     iterator = dataset.make_one_shot_iterator()
     
-    features, labels = iterator.get_next()
+    features = iterator.get_next()
 
-    return features, labels
+    return features
 
 
