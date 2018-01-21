@@ -1,6 +1,6 @@
 import argparse
 import os
-import gmodelbad
+import gmodel
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn.utils import (
     saved_model_export_utils)
@@ -11,17 +11,17 @@ def run_experiment(hparams):
     """Run the training and evaluate using the high level API"""
     
     # Get the train_input function
-    train_input = lambda: gmodelbad.my_input_fn('train',file_dir = hparams.file_dir,
+    train_input = lambda: gmodel.my_input_fn('train',file_dir = hparams.file_dir,
         num_epochs=hparams.num_epochs,
         batch_size=hparams.train_batch_size)
 
     # Don't shuffle evaluation data
-    eval_input = lambda: gmodelbad.my_input_fn('val', file_dir= hparams.file_dir,
+    eval_input = lambda: gmodel.my_input_fn('val', file_dir= hparams.file_dir,
         batch_size=hparams.eval_batch_size,
         shuffle=False)
 
     
-    # Set up the configuration to run gmodelbad
+    # Set up the configuration to run gmodel
     run_config = tf.estimator.RunConfig()
     run_config = run_config.replace(model_dir=hparams.job_dir)
     print('model dir {}'.format(run_config.model_dir))
@@ -30,8 +30,8 @@ def run_experiment(hparams):
     export_dir = 'Saved_Estimators/'
 
     # Construct the estimator
-    #estimator = gmodelbad.construct_model(config = run_config)
-    estimator = tf.estimator.Estimator(gmodelbad.my_model_fn,config = run_config)
+    #estimator = gmodel.construct_model(config = run_config)
+    estimator = tf.estimator.Estimator(gmodel.my_model_fn,config = run_config)
     print(type(estimator))
 
     #Train the model
