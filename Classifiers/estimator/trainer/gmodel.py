@@ -83,13 +83,10 @@ def my_model_fn(features,mode, config):
         exp_ops = {'pres':predict_out}
         return tf.estimator.EstimatorSpec(mode=mode,predictions=predictions,export_outputs=exp_ops)
 
-# Build the function in an EstimatorSpec
-#def construct_model(config = None):
-#    return tf.estimator.Estimator(my_model_fn,config=config)
 
 # Helper function to get game tfrecords
 def get_name(tag):
-    #print(tag)
+    
     game,name,file_dir = tag
     result = []
     path = file_dir+'/%s/%s'%(game,name)
@@ -141,7 +138,7 @@ def my_input_fn(name,file_dir = ['TFRecords'],
     game_IDs = os.listdir(file_dir)
     num_games = len(game_IDs)
     files = [file_dir]*num_games
-    #print(game_IDs)
+    
     # Get tfrecords
     if name == 'train':
         games = zip(game_IDs,['train']*num_games,files)
