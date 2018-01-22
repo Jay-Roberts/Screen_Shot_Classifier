@@ -79,6 +79,8 @@ def my_model_fn(features,mode, config):
         return tf.estimator.EstimatorSpec( mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
     
     if mode == tf.estimator.ModeKeys.PREDICT:
+        # Make a PredictOutput object.
+        # predcitions dictionary keys = {'classes','predicitions'}
         predict_out = tf.estimator.export.PredictOutput(predictions)
         exp_ops = {'pres':predict_out}
         return tf.estimator.EstimatorSpec(mode=mode,predictions=predictions,export_outputs=exp_ops)
