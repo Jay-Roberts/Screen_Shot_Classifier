@@ -37,38 +37,21 @@ def predict_np(images,graph_path):
             inference: A list of int The softmax guess corresponding to the inferred label for the image.
             confidence: A list where each element is a list with the probability the image corresponds to a given label.
     """
-    # Init graph
-    graph = tf.Graph()
     
-    # Init session
-    with tf.Session(graph=graph) as sess:
+    # Use the predictor loader to load rom .pb files
 
-        # Load the graph with the trained states
-        loader = tf.train.import_meta_graph(graph_path + '.meta')
-        loader.restore(sess, graph_path)
+    saved_model_predictor = tf.contrib.predictor.from_saved_model(export_dir=os.getcwd() + '/Saved_Estimators/1516565538')
 
-        print('Neural Network Successfully Loaded')
-
-        # Get the input layer
-        input = graph.get_operation_by_name("input_layer").outputs[0]
-        input_dict = {input: images}
-
-        # Get the predicted class along with the confidence of all possibilities
-        prediction = graph.get_operation_by_name("softmax_tensor").outputs[0]
-        classes = graph.get_tensor_by_name("class:0")
-        
-
-        # Feed in data to be predicted
-        sess.run([prediction,classes],feed_dict=input_dict)
-
-        # Find the probabilities of image being each game
-        confidence = prediction.eval(feed_dict=input_dict,session=sess)
-
-        # Get actual guess
-        inference = classes.eval(feed_dict=input_dict,session=sess)
-
-        return [inference,confidence]
-
+    inputs = {}
+    num_imgs = np.shape(images)[0]
+    for j in range(num_imgs):
+        #print(images[j,0,0,0])
+        inputs['image']=images[j,:,:,:]
+        #print(inputs['image'].shape)
+        output_dict =saved_model_predictor(inputs)
+        print(output_dict['classes'])
+    #output_dict =saved_model_predictor(inputs)
+    #print(output_dict['classes'])
 
 # Take a list of img file names and return
 def predict_imgs(images,graph_path,res=(28,28)):
@@ -91,16 +74,9 @@ def predict_imgs(images,graph_path,res=(28,28)):
         input_array[img_ix,:,:,:] = img
     
     predictions = predict_np(input_array,graph_path)
-    predictions.append(names)
+    #predictions.append(names)
     
     return predictions
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
 
@@ -130,14 +106,14 @@ if __name__ == '__main__':
 
     # Get path
     graph_path = os.getcwd() + args.ckpt_file
-    print('Graph path: %s'%(graph_path))
+    #print('Graph path: %s'%(graph_path))
     
     # testing. Delete later
     Z = np.zeros((28,28,3))
     I = np.array([np.identity(28)]*3)
     I.shape = (28,28,3)
     newimages = [Z,I]
-    print(predict_np(newimages,graph_path))
+    #print(predict_np(newimages,graph_path))
 
     # Get image directory and image path names
     img_dir = args.img_dir
@@ -145,5 +121,8 @@ if __name__ == '__main__':
     images = ['/'.join([img_dir,img]) for img in images]
 
     print(predict_imgs(images,graph_path))
-
-
+    print(predict_imgs(images,graph_path))
+    print(predict_imgs(images,graph_path))
+    print(predict_imgs(images,graph_path))
+    print(predict_imgs(images,graph_path))
+    
