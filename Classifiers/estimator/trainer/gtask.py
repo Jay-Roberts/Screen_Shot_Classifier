@@ -30,7 +30,7 @@ def run_experiment(hparams):
     export_dir = 'Saved_Estimators/'
 
     # Construct the estimator
-    #estimator = gmodel.construct_model(config = run_config)
+
     estimator = tf.estimator.Estimator(gmodel.my_model_fn,config = run_config)
     print(type(estimator))
 
@@ -120,8 +120,6 @@ if __name__ == '__main__':
         default=100,
         type=int
     )
-   
-
 
     args = parser.parse_args()
 
