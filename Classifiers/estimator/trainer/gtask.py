@@ -46,34 +46,14 @@ def run_experiment(hparams):
     # Export it
     # Need to fix this for predictions but is suffiencent for proper export
 
-    # Dictionary of featurs. SHould remove label in model then here.
+    # Dictionary of featurs.
     feature_spec = {'image':tf.placeholder(dtype=tf.float32,shape = [28,28,3]),
                     'label':tf.placeholder(dtype = tf.int32,shape = [1])}
     
     estimator.export_savedmodel(export_dir,
                                 tf.estimator.export.build_raw_serving_input_receiver_fn(feature_spec)
                                 )
-    
-    """
-    # Exporting not working
-    exporter = tf.estimator.FinalExporter('export_test',
-                                            gmodel.SERVING_FUNCTIONS[hparams.export_format])
 
-    #feats = {'image':tf.placeholder(tf.float32,shape = (28,28,3)),
-    #    'label': tf.placeholder(tf.int64)}
-    
-    # Specify eval specs as well as the exporter needed
-    
-    eval_spec = tf.estimator.EvalSpec(eval_input,
-                                    steps=hparams.eval_steps,
-                                    exporters=exporter,
-                                    name='g-eval'
-                                    )
-    
-    tf.estimator.train_and_evaluate(estimator,
-                                    train_spec,
-                                    eval_spec)
-    """
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # Input Arguments
