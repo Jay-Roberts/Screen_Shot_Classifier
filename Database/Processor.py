@@ -94,7 +94,6 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args):
         tag = str(tag)
         #open the TFRecords file
         filename = name_path+'/'+name+'_'+tag+'.tfrecords' #address to save TFRecords file
-        #writer = tf.python_io.TFRecordWriter(filename)
 
         # Pick out the parts for train, test, and val
         if name == 'train':
@@ -187,6 +186,7 @@ def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
     # Make the game path
     source_path = source_dir+'/%s'%gameID
     save_path = save_dir+'/%s'%gameID
+    
     game_label = labels_dict[gameID]
 
     # Get the game's img addresses and its label
