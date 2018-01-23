@@ -178,3 +178,91 @@ def my_input_fn(name,file_dir = ['TFRecords'],
     return features
 
 
+#features = {'image':tf.placeholder(tf.float32,shape = (28,28,3))}
+def tmp_server():
+    #print('tmp_server here just checking in to say hi...')
+    feats = {'image':tf.placeholder(tf.float32,shape = (28,28,3)),
+            'label': tf.placeholder(tf.int64)}
+    server_fn =  tf.estimator.export.build_raw_serving_input_receiver_fn(feats)
+    
+    return server_fn
+
+def numpy_input_receiver_fn():
+  """Build the serving inputs."""
+  features = {'image':tf.placeholder(tf.float32,shape = (28,28,3))}
+  return tf.estimator.export.build_raw_serving_input_receiver_fn(features)
+
+
+# Reads the tf.Example files
+def my_mini_parser(serialized_example):
+    """Parses a single tf.Example into image and label tensors."""
+    features = tf.parse_single_example(
+        serialized_example,
+        features={
+            'image': tf.FixedLenFeature([], tf.string),
+            'label': tf.FixedLenFeature([], tf.int64),
+        })
+
+    image = tf.decode_raw(features['image'], tf.float32)
+
+    # Normalize the values of the image from the range [0, 255] to [-0.5, 0.5]
+    image = tf.cast(image, tf.float32) / 255 - 0.5
+
+    # Real small now
+    image = tf.reshape(image, [28, 28,3])
+
+    return image
+
+def example_serving_input_fn():  
+
+    example_bytestring = tf.placeholder(
+        shape=[None],
+        dtype=tf.string,
+    )
+    feature_spec = {'image': tf.FixedLenFeature([], tf.string),
+                    'label': tf.FixedLenFeature([], tf.int64)}
+    
+    #features = tf.parse_example(example_bytestring,feature_spec)
+
+    features = my_parser(example_bytestring)
+    reciever_tensors = {'examples':example_bytestring}
+    #print('featuressss: ',features)
+    return tf.estimator.export.ServingInputReceiver(features,reciever_tensors)
+
+
+# [START serving-function]
+def json_serving_input_fn():
+  """Build the serving inputs."""
+  inputs1 = tf.placeholder(shape=[28,28,3],dtype=tf.float32)
+  inputs2 = {'image': tf.placeholder(shape=[28,28,3],dtype=tf.float32)}
+
+  #return tf.estimator.export.ServingInputReceiver()
+  return tf.estimator.export.ServingInputReceiver(inputs2, inputs1)
+# [END serving-function]
+
+SERVING_FUNCTIONS = {
+    'JSON': json_serving_input_fn,
+    'EXAMPLE': example_serving_input_fn,
+    #'TMP': tmp_server,
+    'TMP': tf.estimator.export.build_raw_serving_input_receiver_fn(
+        {'image':tf.placeholder(tf.float32,shape = (28,28,3))}
+            )
+}
+
+"""
+#to test it
+run_config = tf.estimator.RunConfig()
+run_config = run_config.replace(model_dir='test')
+estimator = construct_model(config=run_config)
+
+fd = ['TFRecords']
+train_input = lambda: my_input_fn('train',file_dir = fd)
+train_spec = tf.estimator.TrainSpec(train_input, max_steps = 100)
+exporter = tf.estimator.FinalExporter('testit',tmp_server)
+
+eval_input = lambda: my_input_fn('val',file_dir = fd)
+eval_spec = tf.estimator.EvalSpec(eval_input, steps = 100, name = 'eval-it')
+
+
+tf.logging.set_verbosity('INFO')
+tf.estimator.train_and_evaluate(estimator,train_spec,eval_spec)"""

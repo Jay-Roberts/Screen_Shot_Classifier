@@ -19,6 +19,7 @@ python trainer/gtask.py --file-dir $DATA_DIR \
                        --job-dir $OUTPUT_DIR \
                        --num-epochs 2\
                        --eval-steps 1000 \
+                       --train-steps 100
 
 
 # Get rid of local copy of data

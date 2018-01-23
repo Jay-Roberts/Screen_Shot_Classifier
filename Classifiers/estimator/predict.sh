@@ -10,6 +10,6 @@ CHKPT_FILE=$(find . -type f -name model.ckpt* -exec stat --format '%Y :%y %n' "{
                 | head -n 1 \
                 | cut -d ' ' --fields 4 \
                 | cut -d . --fields 2,3)
-#echo $CHKPT_FILE
+echo $CHKPT_FILE
 
-python ./estimator/trainer/loadit.py -d $CHKPT_FILE
+python ./predictor.py -d $CHKPT_FILE
