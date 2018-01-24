@@ -1,7 +1,6 @@
 import argparse
 import os
 import gmodel
-import Rgmodel
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn.utils import (
     saved_model_export_utils)
@@ -11,16 +10,16 @@ from tensorflow.contrib.training.python.training import hparam
 def run_experiment(hparams):
     """Run the training and evaluate using the high level API"""
 
-    model_fns = {'gmodel':gmodel, 'Rgmodel': Rgmodel}
-    model = model_fns[hparams.model]
+    
+    model_fn = gmodel.MODELS_DICT[hparams.model]
     
     # Get the train_input function
-    train_input = lambda: model.my_input_fn('train',file_dir = hparams.file_dir,
+    train_input = lambda: gmodel.my_input_fn('train',file_dir = hparams.file_dir,
         num_epochs=hparams.num_epochs,
         batch_size=hparams.train_batch_size)
 
     # Don't shuffle evaluation data
-    eval_input = lambda: model.my_input_fn('val', file_dir= hparams.file_dir,
+    eval_input = lambda: gmodel.my_input_fn('val', file_dir= hparams.file_dir,
         batch_size=hparams.eval_batch_size,
         shuffle=False)
 
@@ -35,7 +34,7 @@ def run_experiment(hparams):
 
     # Construct the estimator
 
-    estimator = tf.estimator.Estimator(model.my_model_fn,config = run_config)
+    estimator = tf.estimator.Estimator(model_fn,config = run_config)
     print(type(estimator))
 
     #Train the model
@@ -68,8 +67,9 @@ if __name__ == '__main__':
         help='The model in trainer file to run task on',
         type=str,
         required=True,
-        choices=['gmodel',
-                'Rgmodel']
+        choices=['CN',
+                'RN',
+                'RNv']
     )
 
     parser.add_argument(
