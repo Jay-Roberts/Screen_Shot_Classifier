@@ -137,7 +137,8 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
             writer = tf.python_io.TFRecordWriter(local_filename)
             print('%s: Processing block %s'%(gameID,block_name))
             #Process data
-            for i in ixs:
+            for i in block:
+                #j = block.index(i) + block_size*ixs_blocks.index(block)
                 # Progress check. Low for testing
                 if  i % 150 == 0:
                     print('%s-%s data: %d/%d'%(name_path,name,ixs.index(i),num_data))
@@ -258,15 +259,16 @@ def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
             print('%s: Processing block %s'%(gameID,block_name))
             
             #Process data in TFRecord format
-            for i in ixs:
+            for i in block:
+                j = block.index(i) + block_size*ixs_block.index(block)
                 # Progress check. Low for testing
-                if  i % 150 == 0:
-                    print('%s-%s data: %d/%d'%(gameID,name,ixs.index(i),num_data))
+                if  j % 150 == 0:
+                    print('%s-%s data: %d/%d'%(gameID,name,ixs.index(j),num_data))
                     sys.stdout.flush
             
                 # Load the image
-                img = load_image(addrs[i],res)
-                label = labels[i]
+                img = load_image(addrs[j],res)
+                label = labels[j]
 
                 # Create feature
                 feature = {
@@ -339,7 +341,7 @@ if __name__ == '__main__':
     # Hyper Arguments
     parser.add_argument('--resolution',
             help='Desired resolution. 2 arguments needed. Default is 28 x 28',
-            default=[28,28],
+            default=[228,228],
             nargs=2,
             type=int
     )
@@ -353,7 +355,7 @@ if __name__ == '__main__':
     
     parser.add_argument('--chunk-size',
         help='The size of image chunk to make each TFRecord',
-        default=100,
+        default=166,
         type=int
     )
 
