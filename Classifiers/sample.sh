@@ -15,11 +15,12 @@ DATE=`date '+%Y%m%d_%H%M%S'`
 export OUTPUT_DIR=output_$DATE
 
 #Local training
-python trainer/gtask.py --file-dir $DATA_DIR \
+python trainer/gtask.py --model CN \
+                       --file-dir $DATA_DIR \
                        --job-dir $OUTPUT_DIR \
-                       --num-epochs 2\
-                       --eval-steps 1000 \
-                       --train-steps 100
+                       --num-epochs 1\
+                       --eval-steps 100 \
+                       --train-steps 1000
 
 
 # Get rid of local copy of data
