@@ -341,7 +341,7 @@ if __name__ == '__main__':
     # Hyper Arguments
     parser.add_argument('--resolution',
             help='Desired resolution. 2 arguments needed. Default is 28 x 28',
-            default=[228,228],
+            default=[28,28],
             nargs=2,
             type=int
     )
