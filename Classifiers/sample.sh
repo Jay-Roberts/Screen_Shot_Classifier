@@ -15,7 +15,7 @@ DATE=`date '+%Y%m%d_%H%M%S'`
 export OUTPUT_DIR=output_$DATE
 
 #Local training
-python trainer/gtask.py --model CN \
+python trainer/gtask.py --model SNN \
                        --file-dir $DATA_DIR \
                        --job-dir $OUTPUT_DIR \
                        --num-epochs 1\

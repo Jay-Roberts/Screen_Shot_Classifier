@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import multiprocessing as mp
+import random as rand
 
 #---------------------------------------------------------------------------------------------------
 #   A basic Convolutional Neuaral network
@@ -25,7 +26,6 @@ def CNN_model_fn(features,mode, config):
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
-    
 
     # Pooling Layer #1
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
@@ -287,11 +287,93 @@ def R_van_model_fn(features,mode, config):
         return tf.estimator.EstimatorSpec(mode=mode,predictions=predictions,export_outputs=exp_ops)
 
 
+#---------------------------------------------------------------------------------------------------
+#   A Stochastic Residual Neural Network
+#   with diagonal noise
+#---------------------------------------------------------------------------------------------------
+
+def SRNN_model_fn(features,mode, config):
+    print('MODE:',mode)
+    #print('Feature type: ', features.shape)
+    # Input layer
+    input_layer = tf.reshape(features['image'], [-1,28,28,3],name='input_layer')
+    labels = features['label']
+
+    conv0 = tf.layers.conv2d(
+        inputs=input_layer,
+        filters=16,
+        kernel_size=[5, 5], # Make small to allow for more layers
+        padding="same",
+        activation=tf.nn.relu)
+
+    # Step size - set for stability
+    dt = 0.1
+
+    Residual = tf.contrib.layers.repeat(conv0, 2, sNN_layer, dt, scope='')
+  
+    
+    # Remove pool to preserve size
+    #pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
+
+    # Dense Layer
+    # Make sure size matches residual
+    Residual_flat = tf.reshape(Residual, [-1, 28 * 28 * 16])
+    dense = tf.layers.dense(inputs=Residual_flat, units=1024, activation=tf.nn.relu)
+    dropout = tf.layers.dropout(
+        inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+
+    # Logits Layer
+    # Units is number of games
+    logits = tf.layers.dense(inputs=dropout, units=5)
+
+    predictions = {
+        # Generate predictions (for PREDICT and EVAL mode)
+        "classes": tf.argmax(input=logits, axis=1, name = "class"),
+        # Add `softmax_tensor` to the graph. It is used for PREDICT and by the
+        # `logging_hook`.
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+    }
+
+    
+    # Calculate Loss (for both TRAIN and EVAL modes)
+    # Depth is number of games
+    onehot_labels = tf.one_hot(indices=tf.cast(labels, tf.int32), depth=5)
+
+    loss = tf.losses.softmax_cross_entropy(
+        onehot_labels=onehot_labels, logits=logits)
+
+    # Configure the Training Op (for TRAIN mode)
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+        train_op = optimizer.minimize(
+            loss=loss,
+            global_step=tf.train.get_global_step())
+        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+
+        # Add evaluation metrics (for EVAL mode)
+    if mode == tf.estimator.ModeKeys.EVAL:
+        eval_metric_ops = {
+            "accuracy": tf.metrics.accuracy(labels=labels, 
+                                            predictions=predictions["classes"])
+            }
+        return tf.estimator.EstimatorSpec( mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+    
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        # Make a PredictOutput object.
+        # predcitions dictionary keys = {'classes','predicitions'}
+        predict_out = tf.estimator.export.PredictOutput(predictions)
+        exp_ops = {'pres':predict_out}
+        return tf.estimator.EstimatorSpec(mode=mode,predictions=predictions,export_outputs=exp_ops)
+
+
+
+
 # Dictionary of available models
 MODELS_DICT = {
     'CN': CNN_model_fn,
     'RN' : R_model_fn,
-    'RNv': R_van_model_fn
+    'RNv': R_van_model_fn,
+    'SNN' : SRNN_model_fn
 }
 # Helper function to get game tfrecords
 def get_name(tag):
@@ -455,6 +537,35 @@ SERVING_FUNCTIONS = {
         {'image':tf.placeholder(tf.float32,shape = (28,28,3))}
             )
 }
+
+# Residual Stochastic Convolutional Layer
+# This corresponds to Explicit Euler-Maruyama
+def sNN_layer(input_layer, dt, scope):
+    
+    # Initialize Diagonal noise
+    dz = tf.random_normal(tf.shape(input_layer))
+    root_dt = tf.sqrt(dt)
+
+    # Compute Stochastic function at previous step
+    fs = tf.layers.conv2d(
+        inputs=input_layer,
+        filters=16,
+        kernel_size=[5, 5], # Make small to allow for more layers
+        padding="same",
+        activation=tf.nn.relu)
+
+    # Compute Deterministic function
+    fd = tf.layers.conv2d(
+        inputs=input_layer,
+        filters=16,
+        kernel_size=[5, 5], # Make small to allow for more layers
+        padding="same",
+        activation=tf.nn.relu)
+
+    return tf.add( input_layer, tf.add( tf.scalar_mul(dt,fd) , tf.scalar_mul( root_dt, tf.multiply(fs,dz) ) ) )
+
+
+    
 
 """
 #to test it

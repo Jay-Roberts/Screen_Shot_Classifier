@@ -69,7 +69,8 @@ if __name__ == '__main__':
         required=True,
         choices=['CN',
                 'RN',
-                'RNv']
+                'RNv',
+                'SNN']
     )
 
     parser.add_argument(
