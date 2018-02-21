@@ -117,7 +117,7 @@ def get_urls(appID,Num_scrolls,UrlDir):
                 continue
 
         if knock  >= knocks :
-            print('%s: Community not Found',%game)
+            print('%s: Community not Found'%game)
             game_img_urls = ['Community Not Found']
                 
     # put the new urls together and get rid of repeats
