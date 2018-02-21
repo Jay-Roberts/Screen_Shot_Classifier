@@ -49,18 +49,40 @@ def get_urls(appID,Num_scrolls,UrlDir):
         
         # Build the community url
 
-        game_com = 'https://steamcommunity.com/app/'+game+'/homecontent/?userreviewsoffset=0&p='+pg
-        game_com+= '&workshopitemspage='+pg+'&readytouseitemspage='+pg+'&mtxitemspage='+pg+'&itemspage='+pg+'&screenshotspage='+pg
-        game_com+= '&videospage='+pg+'&artpage='+pg+'&allguidepage='+pg+'&webguidepage='+pg+'&integratedguidepage='+pg
-        game_com+= '&discussionspage='+pg+'&numperpage=50&browsefilter=mostrecent&browsefilter=mostrecent&'
-        game_com+= 'appid='+game+'&appHubSubSection=2&appHubSubSection=2&l=english&filterLanguage=default&searchText=&forceanon=1'
+        game_com =  'https://steamcommunity.com/app/'+game+'/homecontent/'
+        
+        url_params = {'userreviewsoffset':'0',
+        'p': pg,
+        'workshopitemspage':pg,
+        'readytouseitemspage':pg,
+        'mtxitemspage':pg,
+        'itemspage':pg,
+        'screenshotspage':pg,
+        'videospage':pg,
+        'artpage':pg,
+        'allguidepage':pg,
+        'webguidepage':pg,
+        'integratedguidepage':pg,
+        'discussionspage':pg,
+        'numperpage':str(50),
+        'browsefilter':'trendday',
+        'browsefilter':'trendday',
+        'appid':game,
+        'appHubSubSection':'2',
+        'appHubSubSection':'2',
+        'l':'english',
+        'filterLanguage':'default',
+        'searchText':'',
+        'forceanon':'1'}
+        
+
         # NOT ALL PAGES HAVE A COMMUNITY
         # See if the page exists:
         try:
             # Request the page
             if scroll % 5 == 0:
                 print('%s: Requesting page %d'%(game, scroll))
-            game_pg = requests.get(game_com)
+            game_pg = requests.get(game_com,params=url_params)
 
             # Make the tree
             game_tree = html.fromstring(game_pg.content)
@@ -145,8 +167,6 @@ if __name__ == '__main__':
         appIDs[i] = [appIDs[i],args.num_scrolls,args.save_dir]
 
     with mp.Pool(processes = args.num_cores) as pool:
-        #pool = mp.Pool(processes = num_cores)
-            #url_chunks = pool.map(block_image_collector,url_blocks)  
             pool.map(get_urls_unpack,appIDs)
 
     pool.close()
