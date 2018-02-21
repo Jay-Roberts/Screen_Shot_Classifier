@@ -144,5 +144,11 @@ if __name__ == '__main__':
     for i in range(args.num_games):
         appIDs[i] = [appIDs[i],args.num_scrolls,args.save_dir]
 
-    pool = mp.Pool(processes = args.num_cores)
-    pool.map(get_urls_unpack,appIDs)
+    with mp.Pool(processes = args.num_cores) as pool:
+        #pool = mp.Pool(processes = num_cores)
+            #url_chunks = pool.map(block_image_collector,url_blocks)  
+            pool.map(get_urls_unpack,appIDs)
+
+    pool.close()
+    pool.join()
+    
