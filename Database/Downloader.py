@@ -53,12 +53,18 @@ def get_images(url,ID,tag,knocks):
             img = misc.imread(img, mode='RGB')
 
             knock = knocks + 10
-        except:
-            if knock > 2:
-                print('%s: Image %s not found after %d knocks'%(ID,tag,knock+1))
-                knock+=1
-            else:
-                knock+=1
+        
+        # Catch exceptions
+        except requests.exceptions.Timeout:
+            print('%s: knocking' %game)
+            knock+=1
+            continue
+        
+        except requests.exceptions.ConnectionError:
+            print('%s: knocking' %game)
+            knock+=1
+            continue
+
         
     if knock > knocks+2:
         return [img,0]

@@ -14,6 +14,12 @@ import os
 import Top100Games
 import pandas as pd
 import argparse
+import socket
+
+
+# Define a timeout variable for Requests
+timeout = 0.5 # This is a 1 second timeout
+socket.setdefaulttimeout(timeout)
 
 # A function that downloads urls from a game's community page
 def get_urls(appID,Num_scrolls,UrlDir):
@@ -78,24 +84,42 @@ def get_urls(appID,Num_scrolls,UrlDir):
 
         # NOT ALL PAGES HAVE A COMMUNITY
         # See if the page exists:
-        try:
-            # Request the page
-            if scroll % 5 == 0:
-                print('%s: Requesting page %d'%(game, scroll))
-            game_pg = requests.get(game_com,params=url_params)
+        
+        
+        knock = 0
+        knocks = 4
+        found = False
+        while knock < knocks and not(found):
+            try:
+                # Request the page
+                if scroll % 5 == 0:
+                    print('%s: Requesting page %d'%(game, scroll))
+                game_pg = requests.get(game_com,params=url_params)
 
-            # Make the tree
-            game_tree = html.fromstring(game_pg.content)
+                # Make the tree
+                game_tree = html.fromstring(game_pg.content)
 
-            #Scrape for the sources of the images displayed
-            new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
-            game_urls += new_urls
+                #Scrape for the sources of the images displayed
+                new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+                game_urls += new_urls
 
-        # IF the community does not exist
-        except:
-            print(game + ' community not found')
-            game_img_urls = ['Community Not Found']
+                found = True
+            # IF the community does not exist
+            except requests.exceptions.Timeout:
+                print('%s: knocking' %game)
+                knock+=1
+                continue
             
+            except requests.exceptions.ConnectionError:
+                print('%s: knocking' %game)
+                print(requests.exceptions.Timeout)
+                knock+=1
+                continue
+
+        if knock  >= knocks :
+            print('%s: Community not Found',%game)
+            game_img_urls = ['Community Not Found']
+                
     # put the new urls together and get rid of repeats
     game_urls = list(set(game_urls))
     print('%s: Found %d new urls'%(game,len(game_urls)))
