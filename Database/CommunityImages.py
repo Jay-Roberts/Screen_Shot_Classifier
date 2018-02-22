@@ -71,8 +71,8 @@ def get_urls(appID,Num_scrolls,UrlDir):
         'integratedguidepage':pg,
         'discussionspage':pg,
         'numperpage':str(50),
-        'browsefilter':'trendday',
-        'browsefilter':'trendday',
+        'browsefilter':'mostrecent',
+        'browsefilter':'mostrecent',
         'appid':game,
         'appHubSubSection':'2',
         'appHubSubSection':'2',
@@ -81,30 +81,28 @@ def get_urls(appID,Num_scrolls,UrlDir):
         'searchText':'',
         'forceanon':'1'}
         
-
-        # NOT ALL PAGES HAVE A COMMUNITY
-        # See if the page exists:
-        
-        
+        #Knock on page to see if it is there
         knock = 0
         knocks = 4
         found = False
+
         while knock < knocks and not(found):
+            if scroll % 5 == 0:
+                print('%s: Requesting page %d'%(game, scroll))
             try:
                 # Request the page
-                if scroll % 5 == 0:
-                    print('%s: Requesting page %d'%(game, scroll))
                 game_pg = requests.get(game_com,params=url_params)
-
-                # Make the tree
-                game_tree = html.fromstring(game_pg.content)
-
-                #Scrape for the sources of the images displayed
-                new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
-                game_urls += new_urls
-
-                found = True
-            # IF the community does not exist
+                
+                # See if the there is conent
+                # Sometimes no exception occurs but zero content is retrieved
+                content = len(game_pg.content)
+                if content > 0:
+                    found = True
+                else:
+                    print('%s: knocking' %game)
+                    knock+=1
+            
+            
             except requests.exceptions.Timeout:
                 print('%s: knocking' %game)
                 knock+=1
@@ -115,11 +113,23 @@ def get_urls(appID,Num_scrolls,UrlDir):
                 print(requests.exceptions.Timeout)
                 knock+=1
                 continue
+            
+        # Scrape for the sources of the images displayed.
+        # Only if content was found
+        if found:
+            game_tree = html.fromstring(game_pg.content)
+            new_urls = game_tree.xpath('//img[@class = "apphub_CardContentPreviewImage"]/@src')
+        else:
+            
+            new_urls = []
+        game_urls += new_urls
+           
 
         if knock  >= knocks :
             print('%s: Community not Found'%game)
             game_img_urls = ['Community Not Found']
-                
+    
+
     # put the new urls together and get rid of repeats
     game_urls = list(set(game_urls))
     print('%s: Found %d new urls'%(game,len(game_urls)))
