@@ -6,17 +6,13 @@
 #---------------------------------------------------------------------------
 import argparse
 import os
-import numpy as np
 import pandas as pd
 import multiprocessing as mp
-# request is for python3 not 2
-from urllib import request
-#from urllib2 import urlopen
-from scipy import misc
-from skimage import transform, io
+import requests
 import Top100Games
 import CommunityImages
 import socket
+import shutil
 
 
 # Define a timeout variable for Requests
@@ -43,15 +39,11 @@ def get_images(url,ID,tag,knocks):
     while knock <= knocks:
         try:
             # request is for python3
-            img = request.urlopen(url)
+            img = requests.get(url, stream=True)
 
             if tag % 50 ==0 and knock==0:
                 print(ID+': requesting image '+str(tag))
             
-            # Here for python2
-            #img = urlopen(url)
-            img = misc.imread(img, mode='RGB')
-
             knock = knocks + 10
         
         # Catch exceptions
@@ -93,10 +85,9 @@ def img_exp(img,ID,tag,sv_dir,cloud=False):
         print(ID+': saving image '+str(tag))
     
     # Upload to cloud
+    with open(img_name, 'wb') as out_file:
+        shutil.copyfileobj(img.raw, out_file)
     if cloud:
-        
-        # make tmp img
-        io.imsave(img_name,img)
 
         # make blob to upload
         blob = bucket.blob(img_name)
@@ -121,8 +112,7 @@ def img_exp(img,ID,tag,sv_dir,cloud=False):
         
         os.remove(img_name)
 
-    else:
-        io.imsave(img_name,img)
+        
 
 # Take (url,ID,ix,d) and download the image to disk
 def image_collector(url,ID,tag,d,sv_dir,knocks,cloud=False):
@@ -228,6 +218,16 @@ if __name__ == '__main__':
     # Unpack cloud args
     g_project, g_bucket = args.g_project, args.g_bucket
 
+    if g_project:
+        from google.cloud import storage
+        
+        # Conncet to google bucket
+        client = storage.Client(project=g_project)
+        bucket = client.get_bucket(g_bucket)
+
+        cloud = True            
+    else:
+        cloud = False
 
     # Check if there is an image directory
     if not os.path.isdir(args.save_dir):
@@ -245,7 +245,8 @@ if __name__ == '__main__':
         ID = game
 
         # Where the images will be saved
-        game_path = save_dir+'/'+ID
+        #game_path = save_dir+'/'+ID
+        game_path = '/'.join([save_dir,ID])
 
         # Make an image directory if not already
         if not os.path.isdir(game_path):
@@ -256,31 +257,28 @@ if __name__ == '__main__':
 
         if not os.path.exists(url_path):
             print(ID+': Delete Gamesurl and run again')
-
         url_df = pd.read_csv(url_path+'/'+ID+'_urls.csv')
 
         # Get the relevant info
         url_list = url_df['URL']
-        
         num_urls = len(url_list)
         
-        tags, downs = list(url_df.index), url_df['DOWNLOADED']
-        
-        
-        if g_project:
-            from google.cloud import storage
-            
-            cloud = True            
+        # Get initial name of images
+        downs = url_df['DOWNLOADED']
 
-            # Conncet to google bucket
-            client = storage.Client(project=g_project)
-            bucket = client.get_bucket(g_bucket)
+        # Check for old images not in the current url df
+        if cloud:
+            oldies = len(list(bucket.list_blobs(prefix=game_path)))
 
+        elif os.path.isdir(game_path):
+            oldies = len(os.listdir(game_path))
         else:
-            cloud = False
+            print('no previous games found')
+            oldies = 0
+        
+        tags = [x + oldies for x in url_df.index.values]
         
         IDs, clouds, save_dirs, knockss = [game]*num_urls, [cloud]*num_urls, [save_dir]*num_urls, [knocks]*num_urls
-        
 
         # Zip it up
         url_data = zip(url_list,IDs,tags,downs,save_dirs,knockss,clouds)
