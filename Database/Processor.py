@@ -39,11 +39,7 @@ def _bytes_feature(value):
 
 # Write train data into a TFRecord
 
-#
-# TO DO:
-# Add in the google bucket compatability
-#
-def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
+def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag):
     """
     Makes a TFRecord from image files. Splits images into train,test, and val files.
     Saves to:
@@ -66,13 +62,18 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
     split,res,chunk_size = hyp_args
     
     # Make the game path
-    source_path = source_dir+'/%s'%gameID
-    save_path = save_dir+'/%s'%gameID
+    #source_path = source_dir+'/%s'%gameID
+    #save_path = save_dir+'/%s'%gameID
+
+    source_path = '/'.join([source_dir,gameID])
+    save_path = '/'.join([save_dir,gameID])
+
     game_label = labels_dict[gameID]
 
     # Get the game's img addresses and its label
     addrs = glob.glob(source_path+'/*.jpg')
     num_imgs = len(addrs)
+
     labels = [game_label]*num_imgs
 
     # split the data
@@ -87,16 +88,9 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
     for name in names:
-        name_path = save_path+'/'+name
         
-        if not os.path.isdir(name_path):
-            os.makedirs(name_path)
-        
-        tag = len(os.listdir(name_path))
-        tag = str(tag)
-        #open the TFRecords file
-        filename = name_path+'/'+name+'_'+tag+'.tfrecords' #address to save TFRecords file
-        #writer = tf.python_io.TFRecordWriter(filename)
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
 
         # Pick out the parts for train, test, and val
         if name == 'train':
@@ -126,22 +120,28 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
             ixs_blocks.append(ixs[-orphans:])
         
         # Find how many records are already in the directory
-        num_old_recs = len(os.listdir(save_path+'/'+name))
+        #num_old_recs = len(os.listdir(save_path+'/'+name))
+        num_old_recs = 0
 
+        # Downloading and saving can be a bottleneck so chunks lets you split it up.
+        # Particularly important when uploading to 
         for block in ixs_blocks:
-            block_name = num_old_recs + ixs_blocks.index(block)
+            block_name = game_tag + ixs_blocks.index(block)
             block_name = str(block_name)
             block_size = len(block)
 
-            local_filename = name_path+'/%s_%s.tfrecords'%(name,block_name)
+            local_filename = '%s_%s.tfrecords'%(name,block_name)
+            local_filename = '/'.join([save_path,local_filename])
+
+            # Open a tfrecord file
             writer = tf.python_io.TFRecordWriter(local_filename)
             print('%s: Processing block %s'%(gameID,block_name))
+
             #Process data
             for i in block:
-                #j = block.index(i) + block_size*ixs_blocks.index(block)
-                # Progress check. Low for testing
+                
                 if  i % 150 == 0:
-                    print('%s-%s data: %d/%d'%(name_path,name,ixs.index(i),num_data))
+                    print('%s-%s data: %d/%d'%(local_filename,name,ixs.index(i),num_data))
                     sys.stdout.flush
             
                 # Load the image
@@ -163,158 +163,33 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict):
             writer.close()
             sys.stdout.flush()
 
+            if cloud:
+                # Make a blobs to upload
+                blob = bucket.blob(local_filename)
 
-# Unpack it
-def make_TFRec_unpack(gameID_source_dir_save_dir_split_res_labels_dict):
-    gameID,source_dir,save_dir,hyp_args,labels_dict = gameID_source_dir_save_dir_split_res_labels_dict
-    print(gameID_source_dir_save_dir_split_res_labels_dict)
-    make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict)
-
-def make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks):
-    """
-    Modification of make_TFRec to save processed images to Google Cloud Bucket. 
-    Inputs:
-        gameID: The gameID for labeling purposes. (str)
-        source_dir: The path to the image files. (str)
-        save_dir: The path to save to. (str)
-        hyp_args: (split,res,chunk_size). (3-tuple, list, int)
-            split: The (train,test,val) split for the data. Must add to 1. (3-tuple floats)
-            res: Desired resolution M x N . (list)
-            chunk_size: Size to chunk images for upload. (int)
-        knocks: Number of attempts to upload blob chunks to bucket. (int)
-    Returns:
-        None.
-    """
-    # Unpack hyper arguments
-    split,res,chunk_size = hyp_args
-    
-    # Make the game path
-    source_path = source_dir+'/%s'%gameID
-    save_path = save_dir+'/%s'%gameID
-    game_label = labels_dict[gameID]
-
-    # Get the game's img addresses and its label
-    addrs = glob.glob(source_path+'/*.jpg')
-    num_imgs = len(addrs)
-    labels = [game_label]*num_imgs
-
-    # split the data
-    names = ['train','test','val']
-    train_size, val_size, test_size = split
-    
-    # Shuffle data for good measure
-    c = zip(addrs,labels)
-    shuffle(c)
-    addrs,labels = zip(*c)
-
-    if not os.path.isdir(save_path):
-        os.makedirs(save_path)
-    for name in names:
-        name_path = save_path+'/'+name
-        
-        if not os.path.isdir(name_path):
-            os.makedirs(name_path)
-        #open the TFRecords file
-        filename = name_path+'/'+name+'.tfrecords' #address to save TFRecords file
-
-        # Pick out the parts for train, test, and val
-        if name == 'train':
-            ixs = list(range(int(train_size*num_imgs)))
-
-        if name == 'test':
-            ixs = list(range(int(train_size*num_imgs),int(train_size*num_imgs)+int(test_size*num_imgs)))
-        
-        if name == 'val':
-            ixs = list(range(int(train_size*num_imgs)+int(test_size*num_imgs),num_imgs))
-
-        num_data = len(ixs)
-
-        # Chunk up the idecies
-        num_ixs= len(ixs)
-        
-        # Chunk it up
-        chunks = num_ixs/chunk_size
-        orphans = num_ixs%chunk_size
-
-        ixs_blocks = [0]*chunks
-
-        for i in range(chunks):
-            ixs_blocks[i] = ixs[i*chunk_size:(i+1)*chunk_size]
-        
-        if orphans != 0:
-            ixs_blocks.append(ixs[-orphans:])
-        
-        # Process the blocks
-        for block in ixs_blocks:
-            # make a unique name
-            block_name = datetime.datetime.now().time()
-            block_name = list(str(block_name))
-            block_name = [e for e in block_name if e not in (' ',':','.','-')]
-            block_name = ''.join(block_name)
-
-            block_size = len(block)
-
-            local_filename = name_path+'/%s_%s.tfrecords'%(name,ixs_blocks.index(block)+1)
-            writer = tf.python_io.TFRecordWriter(local_filename)
-            print('%s: Processing block %s'%(gameID,block_name))
-            
-            #Process data in TFRecord format
-            for i in block:
-                j = block.index(i) + block_size*ixs_block.index(block)
-                # Progress check. Low for testing
-                if  j % 150 == 0:
-                    print('%s-%s data: %d/%d'%(gameID,name,ixs.index(j),num_data))
-                    sys.stdout.flush
-            
-                # Load the image
-                img = load_image(addrs[j],res)
-                label = labels[j]
-
-                # Create feature
-                feature = {
-                    'label':_int64_feature(label),
-                    'image': _bytes_feature(tf.compat.as_bytes(img.tostring()))
-                    }
+                # Upload the TFRecord dir
+                # connection issues can get in the way so try a few times. 2 usually works
                 
-                # Create an example protocol buffer
-                example = tf.train.Example(features=tf.train.Features(feature=feature))
-
-                # Serialize to string and write on the file
-                writer.write(example.SerializeToString())
-
-            writer.close()
-            sys.stdout.flush()
-            
-            # Name the blob path in the bucket
-            blob_path = save_dir+'/%s/%s'%(gameID,name)
-
-            # Make a blobs to upload
-            blob = bucket.blob(blob_filename)
-
-            # Upload the TFRecord dir
-            # connection issues can get in the way so try a few times
-            
-            success = False
-            knock = 0
-            while (not success and knock < knocks):
-                try:
-                    blob.upload_from_filename(local_filename)
-                    success = True
-                    print('%s: FINISHED Uploading %s-data in %d tries'%(gameID,name,tries+1))
-                except:
-                    knock+=1
+                success = False
+                gknock = 0
+                gknocks = 4
+                while (not success and gknock < gknocks):
+                    try:
+                        blob.upload_from_filename(local_filename)
+                        success = True
+                        print('%s: FINISHED Uploading %s-data in %d tries'%(gameID,name,gknock+1))
+                    except:
+                        gknock+=1
+                    
+                # Remove the local file
+                if not success:
+                    print('%s: Failed to upload %s'%(gameID,local_filename))
                 
-            # Remove the local file
-            if not success:
-                print('%s: Failed to upload %s'%(gameID,local_filename))
-            
-            os.remove(local_filename)
+                os.remove(local_filename)
 
-# Unpack it
-def make_TFRec_cld_unpack(gameID_source_dir_save_dir_hyp_args_knocks):
-    gameID,source_dir,save_dir,hyp_args,knocks = gameID_source_dir_save_dir_hyp_args_knocks
-    make_TFRec_cld(gameID,source_dir,save_dir,hyp_args,knocks)
-
+def make_TFRec_unpack(gameID_source_dir_save_dir_hyp_args_labels_dict_cloud_gtag):
+    gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag = gameID_source_dir_save_dir_hyp_args_labels_dict_cloud_gtag
+    make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -393,7 +268,6 @@ if __name__ == '__main__':
 
     # Find all the games
     game_IDs = os.listdir(source_dir)
-    #print(game_IDs)
 
     # Make keys
     #global labels_dict
@@ -408,66 +282,65 @@ if __name__ == '__main__':
 
     #make_TFRec_unpack(packed_data[0])
     print('Processing')
+    num_games = len(game_IDs)
 
-    # Save Locally
-    if not g_project:
-        # Where to put them
-        if not os.path.isdir(save_dir):
-            os.makedirs(save_dir)
-        
-        # Get the game list
-        num_games = len(game_IDs)
-        source_dirs = [source_dir]*num_games
-        save_dirs = [save_dir]*num_games
-        hyp_args = [hyp_arg]*num_games
-
-
-
-        # Package it for the pool
-        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,[labels_dict]*len(game_IDs))
-
-        pool = mp.Pool(processes = num_slaves)
-        pool.map(make_TFRec_unpack,packed_data)
-
-    # Save in a cloud bucket
-    else:
+    if g_project:
+        cloud = True
         from google.cloud import storage
         # Conncet to google bucket
         client = storage.Client(project=g_project)
         bucket = client.get_bucket(g_bucket)
 
-        # Where to put them
-        save_dir = save_dir
-        if not os.path.isdir(save_dir):
-            os.makedirs(save_dir)
+        # Find old TFRecord files
         
-        # Get the game list
-        game_IDs = os.listdir(source_dir)
-        num_games = len(game_IDs)
+    else:
+        cloud = False
+    
+    game_tags = [0]*num_games
 
-        source_dirs = [source_dir]*num_games
-        save_dirs = [save_dir]*num_games
-        hyp_args = [hyp_arg]*num_games
-        knocks = [knocks]*num_games
+    
+    for game in game_IDs:
+        game_path = '/'.join([save_dir,game])
+        gi = game_IDs.index(game)
+        if cloud:
+            oldies = len(list(bucket.list_blobs(prefix=game_path)))//3
+
+        elif os.path.isdir(game_path):
+            oldies = len(os.listdir(game_path))//3
+        else:
+            print('no previous games found')
+            oldies = 0
         
-        # Package it for the pool
-        packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,knocks)
+        game_tags[gi] = oldies
+   
+    # Where to put them
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+    
+    # Get the game list
+    
+    source_dirs = [source_dir]*num_games
+    save_dirs = [save_dir]*num_games
+    hyp_args = [hyp_arg]*num_games
+    labels_dicts = [labels_dict]*num_games
+    clouds = [cloud]*num_games
 
 
-        #make_TFRec_cld_unpack(packed_data[0])
-        #map(make_TFRec_cld_unpack,packed_data)
-        pool = mp.Pool(processes = num_slaves)
-        pool.map(make_TFRec_cld_unpack,packed_data)
 
-        pool.close()
-        pool.join()
+    # Package it for the pool
+    packed_data = zip(game_IDs,source_dirs,save_dirs,hyp_args,labels_dicts,clouds,game_tags)
 
-        # Remove temporary directories
-        tmps = os.listdir(save_dir)
-        names = ['test','train','val']
-        for dirp in tmps:
-            for name in names:
-                os.removedirs(save_dir+'/'+dirp+'/'+name)
+    pool = mp.Pool(processes = num_slaves)
+    pool.map(make_TFRec_unpack,packed_data)
+
+
+    # Remove temporary directories
+    tmps = os.listdir(save_dir)
+    
+    for dirp in tmps:
+        tmp_path = '/'.join([save_dir,dirp])
+        
+        os.removedirs(tmp_path)
             
         
 
