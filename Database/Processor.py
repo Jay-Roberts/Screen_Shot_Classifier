@@ -44,13 +44,13 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag):
     Makes a TFRecord from image files. Splits images into train,test, and val files.
     Saves to:
             save_dir/gameID/name/name_tag.tfrecor
-    where name is train,test, or val and tag is an int identifier.
+    where name is train,test, or eval and tag is an int identifier.
     Inputs:
         gameID: The gameID for labeling purposes. (str)
         source_dir: The path to the image files. (str)
         save_dir: The path to save to. (str)
         hyp_args: (split,res,chunk_size). (3-tuple, list, int)
-            split: The (train,test,val) split for the data. Must add to 1. (3-tuple floats)
+            split: The (train,test,eval) split for the data. Must add to 1. (3-tuple floats)
             res: Desired resolution M x N . (list)
             chunk_size: Size to chunk images for upload. (int)
     Returns:
@@ -77,8 +77,8 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag):
     labels = [game_label]*num_imgs
 
     # split the data
-    names = ['train','test','val']
-    train_size, val_size, test_size = split
+    names = ['train','test','eval']
+    train_size, eval_size, test_size = split
     
     # Shuffle data for good measure
     c = list(zip(addrs,labels))
@@ -92,14 +92,14 @@ def make_TFRec(gameID,source_dir,save_dir,hyp_args,labels_dict,cloud,game_tag):
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
 
-        # Pick out the parts for train, test, and val
+        # Pick out the parts for train, test, and eval
         if name == 'train':
             ixs = list(range(int(train_size*num_imgs)))
 
         if name == 'test':
             ixs = list(range(int(train_size*num_imgs),int(train_size*num_imgs)+int(test_size*num_imgs)))
         
-        if name == 'val':
+        if name == 'eval':
             ixs = list(range(int(train_size*num_imgs)+int(test_size*num_imgs),num_imgs))
 
         num_data = len(ixs)
