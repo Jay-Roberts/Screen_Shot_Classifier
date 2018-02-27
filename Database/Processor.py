@@ -256,6 +256,10 @@ if __name__ == '__main__':
     # Main arguments
     source_dir = args.image_dir
     save_dir = args.save_dir
+    # Include resolution in directory save
+    res_name = 'x'.join([str(x) for x in args.resolution])
+    save_dir = '_'.join([save_dir,res_name])
+
     num_slaves = args.num_cores
     
     # Hyper arguments
@@ -334,14 +338,15 @@ if __name__ == '__main__':
     pool.map(make_TFRec_unpack,packed_data)
 
 
-    # Remove temporary directories
-    tmps = os.listdir(save_dir)
-    
-    for dirp in tmps:
-        tmp_path = '/'.join([save_dir,dirp])
+    if g_project:
+        # Remove temporary directories
+        tmps = os.listdir(save_dir)
         
-        os.removedirs(tmp_path)
+        for dirp in tmps:
+            tmp_path = '/'.join([save_dir,dirp])
             
+            os.removedirs(tmp_path)
+                
         
 
 
