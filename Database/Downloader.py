@@ -13,6 +13,7 @@ import Top100Games
 import CommunityImages
 import socket
 import shutil
+import imghdr
 
 
 # Define a timeout variable for Requests
@@ -40,7 +41,7 @@ def get_images(url,ID,tag,knocks):
         try:
             # request is for python3
             img = requests.get(url, stream=True)
-
+            
             if tag % 50 ==0 and knock==0:
                 print(ID+': requesting image '+str(tag))
             
@@ -87,6 +88,13 @@ def img_exp(img,ID,tag,sv_dir,cloud=False):
     # Upload to cloud
     with open(img_name, 'wb') as out_file:
         shutil.copyfileobj(img.raw, out_file)
+    
+    # Check the image was downloaded correctly
+    is_file = imghdr.what(img_name)
+    if not (is_file in ['jpg' , 'png' , 'gif' , 'jpeg']):
+            print(is_file)
+            os.remove(img_name)
+            print("Removed Corrput Image")
     if cloud:
 
         # make blob to upload

@@ -24,7 +24,7 @@ def load_image(addr,res):
     """
     res = tuple(res)
     # cv2 loads images as BGR, convert it to RGB
-    img = cv2.imread(addr)
+    img = cv2.imread(addr,1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     img = cv2.resize(img,res)
