@@ -1,0 +1,9 @@
+lxml
+requests
+pandas
+numpy
+scipy
+opencv-python
+tensorflow
+google.cloud
+imghdr
