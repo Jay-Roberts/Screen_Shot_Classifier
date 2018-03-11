@@ -48,3 +48,26 @@ python3 Processor.py --num-cores 2 \
 ```
 
 This uses 2 cores to process images in chunk sizes of 50 to a resolution of 28x28x3 (1 if greyscale). These images are split into train, eval, and test sets of size 60%, 20%, and 20% of database size respectively. They are saved in TFRecords/classID/{train,test,eval}_n.tfrecord. Each record has feature with a 'label' and 'image' attached.
+
+# Docs
+
+## Top100Games.py
+
+Downloads the top 100 games from [Steam Top 100 List](http://store.steampowered.com/stats/). It removes the games 243750 and 431960 as they are not games. Returns a csv with columns "GAME" and "STEAMID".
+
+## CommunityImages.py
+Downloads urls of images on games' community pages for download later. For arguments descriptions run the --help flag.
+
+Creates a csv containing the urls saved in save_dir/gameID/. The csv has columns 'URL' and 'DOWNLOADED'. 'URL' holds the image urls and 'DOWNLOADED' has values 0.0, 1.0, or 2.0, corresponding to the url having no download attempts, a successful download, or a failed download attempt respectively. 
+
+## Downloader.py
+Downloads the images from url lists. Does not need to be applied to Steam images. So long as images are stored in url_dir/classID/classID.csv with the csv having columns as in **CommunityImages.py** output this code can be used. Url data must be local but images can be downloaded to a Google Cloud Bucket. For argument descriptions run the --help flag.
+
+Downloads the urls as raw images and places them in save_dir/classID/classID_n.jpg. Files which cannot be opened or saved as a .jpg are removed. 
+
+## Processsor.py
+
+Converts the raw image database into a database of uniform resolution TFRecord files split for training, evaluation, and testing.hey are saved in TFRecords/classID/{train,test,eval}_n.tfrecord. Each record has feature with a 'label' and 'image' serialized inside. Can run locally, or both pull images from and save processed images to a Google Cloud Bucket.  For argument descriptions run the --help flag.
+
+Also creates a labes_key.csv which maps classID to model_label. This is needed in decoding the TFRecords during future tasks.
+
