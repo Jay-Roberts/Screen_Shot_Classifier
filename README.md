@@ -49,6 +49,18 @@ python3 Processor.py --num-cores 2 \
 
 This uses 2 cores to process images in chunk sizes of 50 to a resolution of 28x28x3 (1 if greyscale). These images are split into train, eval, and test sets of size 60%, 20%, and 20% of database size respectively. They are saved in TFRecords/classID/{train,test,eval}_n.tfrecord. Each record has feature with a 'label' and 'image' attached.
 
+## Using with deep_models
+
+The data is now in the recommended tensorflow format and can be fed into most basic neural networks without much modification. It is particualarly simple to use it with the **deep_models** package in the [Network-Comparisons](https://github.com/Jay-Roberts/Network-Comparisons) repository. Clone this and copy it to your working directory to use the **sample_classifier.py** example.
+
+```bash
+git clone https://github.com/Jay-Roberts/Network-Comparisons
+mv Network-Comparisons/deep_models .
+
+```
+
+The details of these models can be found in the [Network-Comparisons](https://github.com/Jay-Roberts/Network-Comparisons) repository, 
+
 # Docs
 
 ## Top100Games.py
