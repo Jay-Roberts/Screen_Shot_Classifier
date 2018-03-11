@@ -23,7 +23,7 @@ def main():
     # fix the names
     Games = list(map(fix_name,Games))
     GamesID = list(map(get_appID,GamesID))
-    Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID, 'IMAGES': [0]*len(Games)})
+    Game_list= pd.DataFrame({'GAME': Games,'STEAM ID': GamesID})
     
     # Problem "games"
     # 243750 # SDK Source SDK Base 2013 Multiplayer
