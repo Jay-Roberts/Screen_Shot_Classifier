@@ -11,7 +11,7 @@ git clone https://github.com/Jay-Roberts/Screen_Shot_Classifier/tree/Development
 
 ## Scraping from Steam
 
-To scrape images from the steam website firs you must get the community pages where they are located. 
+To scrape images from the steam website first you must get the community pages where they are located. 
 
 ```bash
 python3 Top100Games.py
