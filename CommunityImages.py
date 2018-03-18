@@ -48,6 +48,9 @@ def get_urls(appID,Num_scrolls,UrlDir):
         game_url_df = {'URL':[],'DOWNLOADED':[]}
         game_url_df = pd.DataFrame(game_url_df)
 
+    # Count number of URL's in un-updated database
+    num_prev_url = game_url_df.shape[0]
+
     # Scrape through with each scroll
     game_urls = []
     for scroll in range(1,Num_scrolls):
@@ -132,7 +135,7 @@ def get_urls(appID,Num_scrolls,UrlDir):
 
     # put the new urls together and get rid of repeats
     game_urls = list(set(game_urls))
-    print('%s: Found %d new urls'%(game,len(game_urls)))
+    print('%s: Found %d urls'%(game,len(game_urls)))
 
     found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
     
@@ -140,7 +143,10 @@ def get_urls(appID,Num_scrolls,UrlDir):
     game_url_df = game_url_df.append(found_urls_df)
 
     #Drop Duplicates
-    game_url_df.drop_duplicates(subset = 'URL')
+    game_url_df = game_url_df.drop_duplicates(subset = 'URL')
+    new_df_size = game_url_df.shape[0]
+    num_new_url = new_df_size - num_prev_url
+    print(game + ': ' + str(num_new_url) + ' new URLs added to databse')
 
     print(game+': Saving URLs')
     game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv')
