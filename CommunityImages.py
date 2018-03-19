@@ -43,7 +43,7 @@ def get_urls(appID,Num_scrolls,UrlDir):
 
     # See if the csv has been made else make it
     if os.path.exists(game_url_path+'/'+game+'_urls.csv'):
-        game_url_df = pd.read_csv(game_url_path+'/'+game+'_urls.csv')
+        game_url_df = pd.read_csv(game_url_path+'/'+game+'_urls.csv', index_col = False)
     else:
         game_url_df = {'URL':[],'DOWNLOADED':[]}
         game_url_df = pd.DataFrame(game_url_df)
@@ -135,21 +135,25 @@ def get_urls(appID,Num_scrolls,UrlDir):
 
     # put the new urls together and get rid of repeats
     game_urls = list(set(game_urls))
+    
     print('%s: Found %d urls'%(game,len(game_urls)))
 
     found_urls_df =pd.DataFrame( {'URL': game_urls, 'DOWNLOADED': [0]*len(game_urls)})
     
-    # append the new data        
+    # append the new data       
     game_url_df = game_url_df.append(found_urls_df)
-
+    
+    
     #Drop Duplicates
     game_url_df = game_url_df.drop_duplicates(subset = 'URL')
     new_df_size = game_url_df.shape[0]
     num_new_url = new_df_size - num_prev_url
-    print(game + ': ' + str(num_new_url) + ' new URLs added to databse')
+
+    print(game + ': ' + str(num_new_url) + ' new URLs added to database')
 
     print(game+': Saving URLs')
-    game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv')
+    
+    game_url_df.to_csv(game_url_path+'/'+game+'_urls.csv',index = False)
 
 # Make an unpacked version
 def get_urls_unpack(tag):
