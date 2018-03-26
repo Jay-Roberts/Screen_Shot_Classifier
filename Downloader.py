@@ -202,6 +202,11 @@ if __name__ == '__main__':
         type=int
     )
 
+    parser.add_argument('--num-images',
+        help='The number of images per game to be downloaded',
+        default=1000,
+        type=int)
+
     
     # GCLOUD Arguments
     parser.add_argument('--g-project',
@@ -213,6 +218,7 @@ if __name__ == '__main__':
             help='The name of an existing gcloud bucket for upload. Required if G_CLOUD is set.',
             type=str
     )
+    
 
     args = parser.parse_args()
         
@@ -222,7 +228,7 @@ if __name__ == '__main__':
     save_dir, url_dir, size = args.save_dir, args.url_dir, args.chunk_size
     knocks = args.knocks
     num_cores = args.num_cores
-
+    num_images = args.num_images
     # Unpack cloud args
     g_project, g_bucket = args.g_project, args.g_bucket
 
@@ -265,7 +271,7 @@ if __name__ == '__main__':
 
         if not os.path.exists(url_path):
             print(ID+': Delete Gamesurl and run again')
-        url_df = pd.read_csv(url_path+'/'+ID+'_urls.csv')
+        url_df = pd.read_csv(url_path+'/'+ID+'_urls.csv', nrows=num_images)
 
         # Get the relevant info
         url_list = url_df['URL']
